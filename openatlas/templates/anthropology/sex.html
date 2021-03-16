@@ -1,0 +1,7 @@
+{% extends "layout.html" %}
+{% block content %}
+    <h1>{{ _('sex estimation')|uc_first }} - {{ entity.name }}</h1>
+    {% if 'contributor'|is_authorized %}
+        {{ _('edit')|button(url_for('anthropology_sex_update', id_=entity.id)) }}
+    {% endif %}
+{% endblock %}

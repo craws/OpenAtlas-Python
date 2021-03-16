@@ -403,6 +403,8 @@ def add_buttons(entity: Entity) -> List[str]:
         buttons.append(button(_('edit'), url_for('update', id_=entity.id)))
         if entity.class_.view != 'place' or not entity.get_linked_entities('P46'):
             buttons.append(display_delete_link(None, entity))
+    if entity.class_.name == 'stratigraphic_unit':
+        buttons.append(button(_('tools'), url_for('anthropology_index', id_=entity.id)))
     return buttons
 
 
