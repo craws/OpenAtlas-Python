@@ -20,8 +20,6 @@ class UsageTemplate:
             'subunit': fields.String,
             'subunit_hierarchy': fields.String}
 
-        usage = {
+        return {
             'message': fields.String,
             'examples': fields.List(fields.Nested(examples))}
-
-        return usage

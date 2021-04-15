@@ -140,6 +140,17 @@
             "de"
           ]
         }
+      },
+      "exportParam": {
+        "name": "export",
+        "in": "query",
+        "description": "Select to which format the output is downloaded",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "csv"
+          ]
+        }
       }
     },
     "schemas": {
@@ -153,6 +164,9 @@
             "type": "string"
           },
           "legal-notice": {
+            "type": "string"
+          },
+          "site-name": {
             "type": "string"
           }
         }
@@ -182,19 +196,19 @@
       "ClassMappingModel": {
         "type": "object",
         "properties": {
-          'systemClass': {
+          "systemClass": {
             "type": "string"
           },
-          'crmClass': {
+          "crmClass": {
             "type": "string"
           },
-          'view': {
+          "view": {
             "type": "string"
           },
-          'icon': {
+          "icon": {
             "type": "string"
           },
-          'en': {
+          "en": {
             "type": "string"
           }
         }
@@ -225,7 +239,7 @@
         }
       },
       "NodeCategoryModel": {
-        "type": "object":
+        "type": "object",
         "properties": {
           "standard": {
             "type": "array",
@@ -483,6 +497,15 @@
           },
           "relationType": {
             "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "when": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WhenModel"
+            }
           }
         }
       },

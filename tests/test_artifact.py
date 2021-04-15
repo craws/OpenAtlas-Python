@@ -24,7 +24,7 @@ class ArtifactTest(TestBaseCase):
             assert b'Love-letter' in rv.data
             with app.test_request_context():
                 app.preprocess_request()  # type: ignore
-                artifact = Entity.get_by_view('artifact')[1]
+                artifact = Entity.get_by_view('artifact')[0]
             rv = self.app.get(url_for('update', id_=artifact.id))
             assert b'Love-letter' in rv.data
             rv = self.app.post(

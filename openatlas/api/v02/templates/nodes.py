@@ -8,9 +8,8 @@ class NodeTemplate:
 
     @staticmethod
     def node_template() -> Dict[str, RestList]:
-        node_json = {
+        json = {
             'id': fields.Integer,
             'label': fields.String,
             'url': fields.String}
-        node = {"nodes": fields.List(fields.Nested(node_json))}
-        return node
+        return {"nodes": fields.List(fields.Nested(json))}

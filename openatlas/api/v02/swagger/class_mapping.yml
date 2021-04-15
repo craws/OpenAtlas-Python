@@ -1,7 +1,7 @@
 Class Mapping endpoint
 ---
 tags:
-  - Usage
+  - Content
 summary: Provides a list of all available system classes, their CIDOC CRM mapping, which view they belong, which icon is used and the englisch name
 responses:
   '200':

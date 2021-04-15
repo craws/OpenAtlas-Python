@@ -65,7 +65,9 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
             <div class="navbar-nav">
-                {{ entity|display_menu(origin=origin)|safe }}
+                {% if current_user.is_authenticated %}
+                    {{ entity|display_menu(origin=origin) }}
+                {% endif %}
             </div>
         </div>
         <div style="float: right;">
@@ -153,7 +155,7 @@
     </nav>
     <nav aria-label="breadcrumb">
         <div class="breadcrumb">
-            {{ crumbs|lay_breadcrumbs }}
+            {{ crumbs|breadcrumb }}
             <div id="site-name-and-version">
                 {{ session['settings']['site_name'] }}
                 <a href="{{ url_for('index_changelog') }}">{{ config['VERSION'] }}</a>
@@ -174,15 +176,9 @@
     {% endwith %}
     <main>
         <div id="content">
-            <div style="float:left" class="container-fluid">{% block content %}{% endblock %}</div>
-            {% if session['settings']['debug_mode'] and 'admin'|is_authorized %}
-                <div class="data-table"
-                     style="float:right;margin:1em;position: absolute;right: 5px;background: rgba(230,219,0,0.4);top: 150px;padding: 5px;">
-                    <p>Debug</p>
-                    {{ debug_model|display_debug_info(form)|safe }}
-                </div>
-            {% endif %}
-            <div style="clear:both"></div>
+            <div style="float:left" class="container-fluid">
+                {% block content %}{% endblock %}
+            </div>
         </div>
     </main>
 </body>

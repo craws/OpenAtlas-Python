@@ -1,0 +1,15 @@
+{% extends "tabs.html" %}
+{% block tab_info %}
+    <div class="row">
+        <div class="col-6">
+            <div class="toolbar">
+                {{ 'tools/notes'|manual }}
+                {{ buttons|join(' ') }}
+            </div>
+            <h1>{{ _('note')|uc_first }}</h1>
+            <div>
+                {{ note['text'] }}
+            </div>
+        </div>
+    </div>
+{% endblock %}

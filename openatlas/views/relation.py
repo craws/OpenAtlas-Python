@@ -1,12 +1,13 @@
 import ast
 from typing import Union
 
-from flask import flash, g, render_template, url_for
+from flask import flash, render_template, url_for
 from flask_babel import lazy_gettext as _
 from werkzeug.utils import redirect
 from werkzeug.wrappers import Response
 
 from openatlas import app, logger
+from openatlas.database.connect import Transaction
 from openatlas.forms.form import build_form
 from openatlas.forms.util import get_link_type
 from openatlas.models.entity import Entity
@@ -22,7 +23,7 @@ def relation_insert(origin_id: int) -> Union[str, Response]:
     form = build_form('actor_actor_relation')
     form.relation_origin_id.data = origin.id
     if form.validate_on_submit():
-        g.cursor.execute('BEGIN')
+        Transaction.begin()
         try:
             for actor in Entity.get_by_ids(ast.literal_eval(form.actor.data)):
                 if form.inverse.data:
@@ -32,10 +33,10 @@ def relation_insert(origin_id: int) -> Union[str, Response]:
                 link_.set_dates(form)
                 link_.type = get_link_type(form)
                 link_.update()
-            g.cursor.execute('COMMIT')
+            Transaction.commit()
             flash(_('entity created'), 'info')
         except Exception as e:  # pragma: no cover
-            g.cursor.execute('ROLLBACK')
+            Transaction.rollback()
             logger.log('error', 'database', 'transaction failed', e)
             flash(_('error transaction'), 'error')
         if hasattr(form, 'continue_') and form.continue_.data == 'yes':
@@ -61,7 +62,7 @@ def relation_update(id_: int, origin_id: int) -> Union[str, Response]:
     related = range_ if origin_id == domain.id else domain
     form = build_form('actor_actor_relation', link_)
     if form.validate_on_submit():
-        g.cursor.execute('BEGIN')
+        Transaction.begin()
         try:
             link_.delete()
             if form.inverse.data:
@@ -71,10 +72,10 @@ def relation_update(id_: int, origin_id: int) -> Union[str, Response]:
             link_.set_dates(form)
             link_.type = get_link_type(form)
             link_.update()
-            g.cursor.execute('COMMIT')
+            Transaction.commit()
             flash(_('info update'), 'info')
         except Exception as e:  # pragma: no cover
-            g.cursor.execute('ROLLBACK')
+            Transaction.rollback()
             logger.log('error', 'database', 'transaction failed', e)
             flash(_('error transaction'), 'error')
         return redirect(url_for('entity_view', id_=origin.id) + '#tab-relation')

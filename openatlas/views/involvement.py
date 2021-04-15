@@ -7,6 +7,7 @@ from werkzeug.utils import redirect
 from werkzeug.wrappers import Response
 
 from openatlas import app, logger
+from openatlas.database.connect import Transaction
 from openatlas.forms.form import build_form
 from openatlas.forms.util import get_link_type
 from openatlas.models.entity import Entity
@@ -26,7 +27,7 @@ def involvement_insert(origin_id: int) -> Union[str, Response]:
             form.activity.choices.append(('P22', g.properties['P22'].name_inverse))
             form.activity.choices.append(('P23', g.properties['P23'].name_inverse))
     if form.validate_on_submit():
-        g.cursor.execute('BEGIN')
+        Transaction.begin()
         try:
             if origin.class_.view == 'event':
                 for actor in Entity.get_by_ids(ast.literal_eval(form.actor.data)):
@@ -46,9 +47,9 @@ def involvement_insert(origin_id: int) -> Union[str, Response]:
                     link_.set_dates(form)
                     link_.type = get_link_type(form)
                     link_.update()
-            g.cursor.execute('COMMIT')
+            Transaction.commit()
         except Exception as e:  # pragma: no cover
-            g.cursor.execute('ROLLBACK')
+            Transaction.rollback()
             logger.log('error', 'database', 'transaction failed', e)
             flash(_('error transaction'), 'error')
         if hasattr(form, 'continue_') and form.continue_.data == 'yes':
@@ -78,16 +79,16 @@ def involvement_update(id_: int, origin_id: int) -> Union[str, Response]:
             form.activity.choices.append(('P22', g.properties['P22'].name))
             form.activity.choices.append(('P23', g.properties['P23'].name))
     if form.validate_on_submit():
-        g.cursor.execute('BEGIN')
+        Transaction.begin()
         try:
             link_.delete()
             link_ = Link.get_by_id(event.link(form.activity.data, actor, form.description.data)[0])
             link_.set_dates(form)
             link_.type = get_link_type(form)
             link_.update()
-            g.cursor.execute('COMMIT')
+            Transaction.commit()
         except Exception as e:  # pragma: no cover
-            g.cursor.execute('ROLLBACK')
+            Transaction.rollback()
             logger.log('error', 'database', 'transaction failed', e)
             flash(_('error transaction'), 'error')
         tab = 'actor' if origin.class_.view == 'event' else 'event'

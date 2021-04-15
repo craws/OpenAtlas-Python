@@ -1,84 +1,60 @@
 from __future__ import annotations  # Needed for Python 4.0 type annotations
 
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 from flask import g
 from flask_login import current_user
-from psycopg2.extras import NamedTupleCursor
 
 from openatlas.util.display import sanitize
 from openatlas.util.util import is_float
+from openatlas.database.imports import Import as Db
 
 
 class Project:
 
-    def __init__(self, row: NamedTupleCursor.Record) -> None:
-        self.id = row.id
-        self.name = row.name
-        self.count = row.count
-        self.description = row.description if row.description else ''
-        self.created = row.created
-        self.modified = row.modified
+    def __init__(self, row: Dict[str, Any]) -> None:
+        self.id = row['id']
+        self.name = row['name']
+        self.count = row['count']
+        self.description = row['description'] if row['description'] else ''
+        self.created = row['created']
+        self.modified = row['modified']
 
 
 class Import:
-    sql = """
-        SELECT p.id, p.name, p.description, p.created, p.modified, COUNT(e.id) AS count
-        FROM import.project p LEFT JOIN import.entity e ON p.id = e.project_id """
 
     @staticmethod
-    def insert_project(name: str, description: Optional[str] = None) -> NamedTupleCursor.Record:
-        description = description.strip() if description else None
-        sql = """
-            INSERT INTO import.project (name, description) VALUES (%(name)s, %(description)s)
-            RETURNING id;"""
-        g.execute(sql, {'name': name, 'description': description})
-        return g.cursor.fetchone()[0]
+    def insert_project(name: str, description: Optional[str] = None) -> int:
+        return Db.insert_project(name, description.strip() if description else None)
 
     @staticmethod
     def get_all_projects() -> List[Project]:
-        g.execute(Import.sql + ' GROUP by p.id ORDER BY name;')
-        return [Project(row) for row in g.cursor.fetchall()]
+        return [Project(row) for row in Db.get_all_projects()]
 
     @staticmethod
     def get_project_by_id(id_: int) -> Project:
-        g.execute(Import.sql + ' WHERE p.id = %(id)s GROUP by p.id;', {'id': id_})
-        return Project(g.cursor.fetchone())
+        return Project(Db.get_project_by_id(id_))
 
     @staticmethod
     def get_project_by_name(name: str) -> Optional[Project]:
-        g.execute(Import.sql + ' WHERE p.name = %(name)s GROUP by p.id;', {'name': name})
-        return Project(g.cursor.fetchone()) if g.cursor.rowcount == 1 else None
+        row = Db.get_project_by_name(name)
+        return Project(row) if row else None
 
     @staticmethod
     def delete_project(id_: int) -> None:
-        g.execute('DELETE FROM import.project WHERE id = %(id)s;', {'id': id_})
+        Db.delete_project(id_)
 
     @staticmethod
-    def check_origin_ids(project: Project, origin_ids: List[str]) -> List[str]:
-        """ Check if origin ids already in database"""
-        sql = """
-            SELECT origin_id FROM import.entity
-            WHERE project_id = %(project_id)s AND origin_id IN %(ids)s;"""
-        g.execute(sql, {'project_id': project.id, 'ids': tuple(set(origin_ids))})
-        return [row.origin_id for row in g.cursor.fetchall()]
+    def get_origin_ids(project: Project, origin_ids: List[str]) -> List[str]:
+        return Db.check_origin_ids(project.id, origin_ids)
 
     @staticmethod
     def check_duplicates(class_: str, names: List[str]) -> List[str]:
-        sql = """
-            SELECT DISTINCT name FROM model.entity
-            WHERE system_class = %(class_)s AND LOWER(name) IN %(names)s;"""
-        g.execute(sql, {'class_': class_, 'names': tuple(names)})
-        return [row.name for row in g.cursor.fetchall()]
+        return Db.check_duplicates(class_, names)
 
     @staticmethod
     def update_project(project: Project) -> None:
-        sql = """
-            UPDATE import.project SET (name, description) = (%(name)s, %(description)s)
-            WHERE id = %(id)s;"""
-        g.execute(sql, {'id': project.id,
-                        'name': project.name,
-                        'description': sanitize(project.description, 'text')})
+        Db.update_project(project.id, project.name, sanitize(project.description, 'text'))
 
     @staticmethod
     def check_type_id(type_id: str, class_: str) -> bool:  # pragma: no cover
@@ -106,14 +82,11 @@ class Import:
                 class_,
                 row['name'],
                 row['description'] if 'description' in row else None)
-            sql = """
-                INSERT INTO import.entity (project_id, origin_id, entity_id, user_id)
-                VALUES (%(project_id)s, %(origin_id)s, %(entity_id)s, %(user_id)s);"""
-            g.execute(sql, {
-                'project_id': project.id,
-                'entity_id': entity.id,
-                'user_id': current_user.id,
-                'origin_id': row['id'] if 'id' in row and row['id'] else None})
+            Db.import_data(
+                project.id,
+                entity.id,
+                current_user.id,
+                origin_id=row['id'] if 'id' in row and row['id'] else None)
 
             # Dates
             if 'begin_from' in row and row['begin_from']:
@@ -135,10 +108,7 @@ class Import:
                 for type_id in row['type_ids'].split():
                     if not Import.check_type_id(type_id, class_):
                         continue
-                    sql = """
-                        INSERT INTO model.link (property_code, domain_id, range_id)
-                        VALUES ('P2', %(domain_id)s, %(type_id)s);"""
-                    g.execute(sql, {'domain_id': entity.id, 'type_id': int(type_id)})
+                    entity.link('P2', g.nodes[int(type_id)])
 
             # GIS
             if class_ == 'place':

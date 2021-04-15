@@ -24,13 +24,6 @@ units even when you deactivate them but the interface elements to add them will 
 
 * **Map Overlay** - to see overlays on the :doc:`/tools/map` or insert new ones (editor or above).
 * **Sub units** - to insert archeological sub units at places, see: :doc:`/entity/place`
-* **Notes** - an additional tool for your workflow, e.g. to add a personal reminder to an entity.
-
-   * Notes can be added with the **Add note** button when viewing an entity.
-   * Notes will be displayed at the entity view and at the :doc:`/overview`.
-   * Your notes are only visible to you (for public notes use the description field)
-   * There is only one note per entity possible
-   * Notes will get deleted if the entity is deleted by you or anybody else
 
 Display
 -------

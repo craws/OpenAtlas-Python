@@ -1,5 +1,3 @@
-from __future__ import annotations  # Needed for Python 4.0 type annotations
-
 from typing import Dict, List, Optional
 
 from flask import g
@@ -54,6 +52,7 @@ def get_table_headers() -> Dict[str, List[str]]:
         'file': ['name', 'license', 'size', 'extension', 'description'],
         'member': ['member', 'function', 'first', 'last', 'description'],
         'member_of': ['member of', 'function', 'first', 'last', 'description'],
+        'note': ['date', 'visibility', 'user', 'note'],
         'type': ['name', 'description'],
         'place': ['name', 'type', 'begin', 'end', 'description'],
         'relation': ['relation', 'actor', 'first', 'last', 'description'],

@@ -8,7 +8,4 @@ class OverviewCountTemplate:
 
     @staticmethod
     def overview_template() -> Dict[str, Type[Union[String, Integer]]]:
-        overview = {
-            'systemClass': fields.String,
-            'count': fields.Integer}
-        return overview
+        return {'systemClass': fields.String, 'count': fields.Integer}

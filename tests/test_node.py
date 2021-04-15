@@ -1,6 +1,7 @@
-from flask import url_for
+from flask import g, url_for
 
 from openatlas import app
+from openatlas.models.entity import Entity
 from openatlas.models.node import Node
 from tests.base import TestBaseCase
 
@@ -55,10 +56,10 @@ class NodeTest(TestBaseCase):
             rv = self.app.post(url_for('update', id_=node_id), data=data, follow_redirects=True)
             assert b'Type can&#39;t have itself as super.' in rv.data
 
-            # Update with a child as root
+            # Update with sub as root
             rv = self.app.post(url_for('insert', class_='type', origin_id=actor_node.id), data=data)
-            child_node_id = rv.location.split('/')[-1].replace('node#tab-', '')
-            data[str(actor_node.id)] = child_node_id
+            sub_node_id = rv.location.split('/')[-1].replace('node#tab-', '')
+            data[str(actor_node.id)] = sub_node_id
             rv = self.app.post(url_for('update', id_=node_id), data=data, follow_redirects=True)
             assert b'Type can&#39;t have a sub as super.' in rv.data
 
@@ -80,8 +81,21 @@ class NodeTest(TestBaseCase):
             rv = self.app.get(url_for('update', id_=dimension_node.subs[0]))
             assert b'Dimensions' in rv.data
 
-            # Test delete system node
+            # Untyped entities
+
+            with app.test_request_context():
+                app.preprocess_request()  # type: ignore
+                actor = Entity.insert('person', 'Connor MacLeod')
+            rv = self.app.get(url_for('show_untyped_entities', id_=sex_node.id))
+            assert b'Connor MacLeod' in rv.data
+            with app.test_request_context():
+                app.preprocess_request()  # type: ignore
+                actor.link('P2', g.nodes[sex_node.subs[0]])
+            rv = self.app.get(url_for('show_untyped_entities', id_=sex_node.id))
+            assert b'No entries' in rv.data
+
+            # Delete
             rv = self.app.get(url_for('node_delete', id_=actor_node.id), follow_redirects=True)
             assert b'Forbidden' in rv.data
-            rv = self.app.get(url_for('node_delete', id_=child_node_id), follow_redirects=True)
+            rv = self.app.get(url_for('node_delete', id_=sub_node_id), follow_redirects=True)
             assert b'The entry has been deleted.' in rv.data

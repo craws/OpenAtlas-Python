@@ -11,15 +11,6 @@ INSERT INTO web.user_settings (user_id, name, value) VALUES
     ((SELECT id FROM web.user WHERE username = 'Alice'), 'entity_show_class', 'True'),
     ((SELECT id FROM web.user WHERE username = 'Alice'), 'entity_show_api', 'True');
 
--- Activate debug mode
-UPDATE web.settings SET value = 'True' WHERE name = 'debug_mode';
-
 -- Citation example
 INSERT INTO web.i18n (name, language, text) VALUES
     ('citation_example', 'en', 'citation example');
-
--- Insert invalid link
-INSERT INTO model.entity (class_code, system_class, name) VALUES
-    ('E13', 'artifact', 'Invalid linked entity');
-INSERT INTO model.link (property_code, range_id, domain_id) VALUES
-    ('P86', (SELECT id FROM model.entity WHERE name = 'Invalid linked entity'), (SELECT id FROM model.entity WHERE name = 'Invalid linked entity'));

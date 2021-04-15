@@ -6,6 +6,7 @@ Tools
 
    search
    profile
+   notes
    map
    network
    table

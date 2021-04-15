@@ -1,7 +1,7 @@
 Overview Count endpoint
 ---
 tags:
-  - Usage
+  - Content
 summary: Provides a count of all types
 responses:
   '200':

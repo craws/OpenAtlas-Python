@@ -37,8 +37,8 @@ class FeedbackForm(FlaskForm):  # type: ignore
 def overview() -> str:
     tables = {
         'overview': Table(paging=False, defs=[{'className': 'dt-body-right', 'targets': 1}]),
-        'bookmarks': Table(['name', 'class', 'first', 'last']),
-        'notes': Table(['name', 'class', 'first', 'last', _('note')]),
+        'bookmarks': Table(['name', 'class', _('first'), _('last')]),
+        'notes': Table(['date', _('visibility'), 'entity', 'class', _('note')]),
         'latest': Table(order=[[0, 'desc']])}
     if current_user.is_authenticated and hasattr(current_user, 'bookmarks'):
         for entity_id in current_user.bookmarks:
@@ -49,14 +49,18 @@ def overview() -> str:
                 entity.first,
                 entity.last,
                 bookmark_toggle(entity.id, True)])
-        for entity_id, text in User.get_notes().items():
-            entity = Entity.get_by_id(entity_id)
+        for note in User.get_notes_by_user_id(current_user.id):
+            entity = Entity.get_by_id(note['entity_id'])
             tables['notes'].rows.append([
+                format_date(note['created']),
+                uc_first(_('public')) if note['public'] else uc_first(_('private')),
                 link(entity),
                 entity.class_.label,
-                entity.first,
-                entity.last,
-                text])
+                note['text'],
+                '<a href="{url}">{label}</a>'.format(
+                    url=url_for('note_view', id_=note['id']),
+                    label=uc_first(_('view')))
+            ])
         for name, count in Entity.get_overview_counts().items():
             if count:
                 url = url_for('index', view=g.class_view_mapping[name])

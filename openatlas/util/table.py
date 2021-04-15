@@ -1,6 +1,6 @@
 from typing import Any, Dict, List, Optional, Union
 
-from flask import json, session
+from flask import json
 from flask_babel import lazy_gettext as _
 from flask_login import current_user
 from markupsafe import Markup
@@ -28,15 +28,16 @@ class Table:
         from openatlas.util.display import uc_first
         if not self.rows:
             return Markup('<p>' + uc_first(_('no entries')) + '</p>')
-        columns: List[Dict[str, str]] = [{'title': _(item).capitalize() if item else ''} for item in
-                                         self.header]
+        columns: List[Dict[str, str]] = [
+            {'title': _(item).capitalize() if item else ''} for item in self.header]
         columns += [{'title': ''} for i in range(len(self.rows[0]) - len(self.header))]  # Add empty
-        data_table = {'data': self.rows,
-                      'stateSave': 'false' if session['settings']['debug_mode'] else 'true',
-                      'columns': columns,
-                      'paging': self.paging,
-                      'pageLength': current_user.settings['table_rows'],
-                      'autoWidth': 'false'}
+        data_table = {
+            'data': self.rows,
+            'stateSave': 'true',
+            'columns': columns,
+            'paging': self.paging,
+            'pageLength': current_user.settings['table_rows'],
+            'autoWidth': 'false'}
         if self.order:
             data_table['order'] = self.order
         if self.defs:
@@ -50,7 +51,7 @@ class Table:
                     $('#{name}_table').on( 'page.dt', () => overflow());
                     $('#{name}_table').on( 'search.dt', () => overflow());
                 }});                
-            </script>""".format(name=name, data_table=json.dumps(data_table), )
+            </script>""".format(name=name, data_table=json.dumps(data_table))
 
         # Toggle header and footer HTML
         css_header = '#{name}_table_wrapper .row:first-of-type {{ display:none; }}'.format(

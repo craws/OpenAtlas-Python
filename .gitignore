@@ -25,6 +25,7 @@ openatlas/export/sql/
 # ide
 .idea
 .ftpconfig
+venv
 
 # npm libs
 openatlas/static/.eggs/

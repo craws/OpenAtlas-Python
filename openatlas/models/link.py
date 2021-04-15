@@ -1,13 +1,13 @@
 from __future__ import annotations  # Needed for Python 4.0 type annotations
 
-from typing import Dict, Iterator, List, Optional, TYPE_CHECKING, Union
+from typing import Any, Dict, List, Optional, TYPE_CHECKING, Union
 
 from flask import abort, flash, g, url_for
 from flask_babel import lazy_gettext as _
 from flask_wtf import FlaskForm
-from psycopg2.extras import NamedTupleCursor
 
 from openatlas import logger
+from openatlas.database.link import Link as Db
 from openatlas.models.date import Date
 from openatlas.util.display import link, uc_first
 
@@ -19,51 +19,45 @@ class Link:
     object_: Optional['Entity']
 
     def __init__(self,
-                 row: NamedTupleCursor.Record,
+                 row: Dict[str, Any],
                  domain: Optional['Entity'] = None,
                  range_: Optional['Entity'] = None) -> None:
         from openatlas.models.entity import Entity
         from openatlas.forms.date import format_date
-        self.id = row.id
-        self.description = row.description
-        self.property = g.properties[row.property_code]
-        self.domain = domain if domain else Entity.get_by_id(row.domain_id)
-        self.range = range_ if range_ else Entity.get_by_id(row.range_id)
-        self.type = g.nodes[row.type_id] if row.type_id else None
+        self.id = row['id']
+        self.description = row['description']
+        self.property = g.properties[row['property_code']]
+        self.domain = domain if domain else Entity.get_by_id(row['domain_id'])
+        self.range = range_ if range_ else Entity.get_by_id(row['range_id'])
+        self.type = g.nodes[row['type_id']] if row['type_id'] else None
         self.nodes: Dict['Entity', None] = {}
-        if hasattr(row, 'type_id') and row.type_id:
-            self.nodes[g.nodes[row.type_id]] = None
-        if hasattr(row, 'begin_from'):
-            self.begin_from = Date.timestamp_to_datetime64(row.begin_from)
-            self.begin_to = Date.timestamp_to_datetime64(row.begin_to)
-            self.begin_comment = row.begin_comment
-            self.end_from = Date.timestamp_to_datetime64(row.end_from)
-            self.end_to = Date.timestamp_to_datetime64(row.end_to)
-            self.end_comment = row.end_comment
+        if 'type_id' in row and row['type_id']:
+            self.nodes[g.nodes[row['type_id']]] = None
+        if 'begin_from' in row:
+            self.begin_from = Date.timestamp_to_datetime64(row['begin_from'])
+            self.begin_to = Date.timestamp_to_datetime64(row['begin_to'])
+            self.begin_comment = row['begin_comment']
+            self.end_from = Date.timestamp_to_datetime64(row['end_from'])
+            self.end_to = Date.timestamp_to_datetime64(row['end_to'])
+            self.end_comment = row['end_comment']
             self.first = format_date(self.begin_from, 'year') if self.begin_from else None
             self.last = format_date(self.end_from, 'year') if self.end_from else None
             self.last = format_date(self.end_to, 'year') if self.end_to else self.last
 
     def update(self) -> None:
-        sql = """
-            UPDATE model.link SET (property_code, domain_id, range_id, description, type_id,
-                begin_from, begin_to, begin_comment, end_from, end_to, end_comment) =
-                (%(property_code)s, %(domain_id)s, %(range_id)s, %(description)s, %(type_id)s,
-                 %(begin_from)s, %(begin_to)s, %(begin_comment)s, %(end_from)s, %(end_to)s,
-                 %(end_comment)s)
-            WHERE id = %(id)s;"""
-        g.execute(sql, {'id': self.id,
-                        'property_code': self.property.code,
-                        'domain_id': self.domain.id,
-                        'range_id': self.range.id,
-                        'type_id': self.type.id if self.type else None,
-                        'description': self.description,
-                        'begin_from': Date.datetime64_to_timestamp(self.begin_from),
-                        'begin_to': Date.datetime64_to_timestamp(self.begin_to),
-                        'begin_comment': self.begin_comment,
-                        'end_from': Date.datetime64_to_timestamp(self.end_from),
-                        'end_to': Date.datetime64_to_timestamp(self.end_to),
-                        'end_comment': self.end_comment})
+        Db.update({
+            'id': self.id,
+            'property_code': self.property.code,
+            'domain_id': self.domain.id,
+            'range_id': self.range.id,
+            'type_id': self.type.id if self.type else None,
+            'description': self.description,
+            'begin_from': Date.datetime64_to_timestamp(self.begin_from),
+            'begin_to': Date.datetime64_to_timestamp(self.begin_to),
+            'begin_comment': self.begin_comment,
+            'end_from': Date.datetime64_to_timestamp(self.end_from),
+            'end_to': Date.datetime64_to_timestamp(self.end_to),
+            'end_comment': self.end_comment})
 
     def delete(self) -> None:
         Link.delete_(self.id)
@@ -113,18 +107,13 @@ class Link:
                 logger.log('error', 'model', text)
                 flash(text, 'error')
                 continue
-            sql = """
-                INSERT INTO model.link (property_code, domain_id, range_id, description, type_id)
-                VALUES (
-                    %(property_code)s, %(domain_id)s, %(range_id)s, %(description)s, %(type_id)s)
-                RETURNING id;"""
-            g.execute(sql, {
+            id_ = Db.insert({
                 'property_code': property_code,
                 'domain_id': domain.id,
                 'range_id': range_.id,
                 'description': description,
                 'type_id': type_id})
-            new_link_ids.append(g.cursor.fetchone()[0])
+            new_link_ids.append(id_)
         return new_link_ids
 
     @staticmethod
@@ -146,16 +135,9 @@ class Link:
                             nodes: bool = False) -> List['Entity']:
         from openatlas.models.entity import Entity
         codes = codes if isinstance(codes, list) else [codes]
-        sql = """
-            SELECT range_id AS result_id FROM model.link
-            WHERE domain_id = %(id_)s AND property_code IN %(codes)s;"""
-        if inverse:
-            sql = """
-                SELECT domain_id AS result_id FROM model.link
-                WHERE range_id = %(id_)s AND property_code IN %(codes)s;"""
-        g.execute(sql, {'id_': id_, 'codes': tuple(codes)})
-        ids = [element for (element,) in g.cursor.fetchall()]
-        return Entity.get_by_ids(ids, nodes=nodes)
+        return Entity.get_by_ids(
+            Db.get_linked_entities(id_, codes, inverse),
+            nodes=nodes)
 
     @staticmethod
     def get_linked_entity_safe(id_: int, code: str,
@@ -173,141 +155,69 @@ class Link:
                   codes: Union[str, List[str], None] = None,
                   inverse: bool = False) -> List[Link]:
         from openatlas.models.entity import Entity
-        sql = """
-            SELECT l.id, l.property_code, l.domain_id, l.range_id, l.description, l.created,
-                l.modified, e.name, l.type_id,
-                COALESCE(to_char(l.begin_from, 'yyyy-mm-dd BC'), '') AS begin_from, l.begin_comment,
-                COALESCE(to_char(l.begin_to, 'yyyy-mm-dd BC'), '') AS begin_to,
-                COALESCE(to_char(l.end_from, 'yyyy-mm-dd BC'), '') AS end_from, l.end_comment,
-                COALESCE(to_char(l.end_to, 'yyyy-mm-dd BC'), '') AS end_to
-            FROM model.link l
-            JOIN model.entity e ON l.{second}_id = e.id """.format(
-            second='domain' if inverse else 'range')
-        if codes:
-            codes = codes if isinstance(codes, list) else [codes]
-            sql += ' AND l.property_code IN %(codes)s '
-        sql += """
-            WHERE l.{first}_id = %(entity_id)s
-            GROUP BY l.id, e.name
-            ORDER BY e.name;""".format(first='range' if inverse else 'domain')
-        g.execute(sql, {'entity_id': entity_id, 'codes': tuple(codes) if codes else ''})
         entity_ids = set()
-        result = g.cursor.fetchall()
+        result = Db.get_links(entity_id, codes if isinstance(codes, list) else [codes], inverse)
         for row in result:
-            entity_ids.add(row.domain_id)
-            entity_ids.add(row.range_id)
+            entity_ids.add(row['domain_id'])
+            entity_ids.add(row['range_id'])
         entities = {entity.id: entity for entity in Entity.get_by_ids(entity_ids, nodes=True)}
         links = []
         for row in result:
-            links.append(Link(row, domain=entities[row.domain_id], range_=entities[row.range_id]))
+            links.append(Link(
+                row,
+                domain=entities[row['domain_id']],
+                range_=entities[row['range_id']]))
         return links
 
     @staticmethod
     def delete_by_codes(entity: 'Entity', codes: List[str], inverse: bool = False) -> None:
-        sql = """
-            DELETE FROM model.link
-            WHERE property_code IN %(codes)s AND {field} = %(id)s;""".format(
-                field='range_id' if inverse else 'domain_id')
-        g.execute(sql, {'id': entity.id, 'codes': tuple(codes)})
+        Db.delete_by_codes(entity.id, codes, inverse)
 
     @staticmethod
     def get_by_id(id_: int) -> Link:
-        sql = """
-            SELECT l.id, l.property_code, l.domain_id, l.range_id, l.description, l.created,
-                l.modified, l.type_id,
-                COALESCE(to_char(l.begin_from, 'yyyy-mm-dd BC'), '') AS begin_from, l.begin_comment,
-                COALESCE(to_char(l.begin_to, 'yyyy-mm-dd BC'), '') AS begin_to,
-                COALESCE(to_char(l.end_from, 'yyyy-mm-dd BC'), '') AS end_from, l.end_comment,
-                COALESCE(to_char(l.end_to, 'yyyy-mm-dd BC'), '') AS end_to
-            FROM model.link l
-            WHERE l.id = %(id)s;"""
-        g.execute(sql, {'id': id_})
-        return Link(g.cursor.fetchone())
+        return Link(Db.get_by_id(id_))
 
     @staticmethod
-    def get_entities_by_node(node: 'Entity') -> Iterator[NamedTupleCursor.Record]:
-        sql = "SELECT id, domain_id, range_id from model.link WHERE type_id = %(node_id)s;"
-        g.execute(sql, {'node_id': node.id})
-        return g.cursor.fetchall()
+    def get_entities_by_node(node: 'Entity') -> List[Dict[str, Any]]:
+        return Db.get_entities_by_node(node.id)
 
     @staticmethod
     def delete_(id_: int) -> None:
-        g.execute("DELETE FROM model.link WHERE id = %(id)s;", {'id': id_})
+        Db.delete_(id_)
 
     @staticmethod
     def check_links() -> List[Dict[str, str]]:
         """ Check all existing links for CIDOC CRM validity and return the invalid ones."""
         from openatlas.util.display import link
         from openatlas.models.entity import Entity
-        sql = """
-            SELECT DISTINCT l.property_code AS property, d.class_code AS domain,
-                r.class_code AS range
-            FROM model.link l
-            JOIN model.entity d ON l.domain_id = d.id
-            JOIN model.entity r ON l.range_id = r.id;"""
-        g.execute(sql)
         invalid_links = []
-        for row in g.cursor.fetchall():
-            property_ = g.properties[row.property]
-            domain_is_valid = property_.find_object('domain_class_code', row.domain)
-            range_is_valid = property_.find_object('range_class_code', row.range)
+        for row in Db.get_cidoc_links():
+            property_ = g.properties[row['property']]
+            domain_is_valid = property_.find_object('domain_class_code', row['domain'])
+            range_is_valid = property_.find_object('range_class_code', row['range'])
             invalid_linking = []
             if not domain_is_valid or not range_is_valid:
-                invalid_linking.append({
-                    'property': row.property,
-                    'domain': row.domain,
-                    'range': row.range})
+                invalid_linking.append(row)
             for item in invalid_linking:
-                sql = """
-                    SELECT l.id, l.property_code, l.domain_id, l.range_id, l.description,
-                        l.created, l.modified
-                    FROM model.link l
-                    JOIN model.entity d ON l.domain_id = d.id
-                    JOIN model.entity r ON l.range_id = r.id
-                    WHERE l.property_code = %(property)s
-                        AND d.class_code = %(domain)s
-                        AND r.class_code = %(range)s;"""
-                g.execute(sql, {
-                    'property': item['property'],
-                    'domain': item['domain'],
-                    'range': item['range']})
-                for row2 in g.cursor.fetchall():
-                    domain = Entity.get_by_id(row2.domain_id)
-                    range_ = Entity.get_by_id(row2.range_id)
+                for row2 in Db.get_invalid_links(item):
+                    domain = Entity.get_by_id(row2['domain_id'])
+                    range_ = Entity.get_by_id(row2['range_id'])
                     invalid_links.append({
                         'domain': link(domain) + ' (' + domain.cidoc_class.code + ')',
-                        'property': link(g.properties[row2.property_code]),
+                        'property': link(g.properties[row2['property_code']]),
                         'range': link(range_) + ' (' + range_.cidoc_class.code + ')'})
         return invalid_links
 
     @staticmethod
-    def check_link_duplicates() -> List[NamedTupleCursor.Record]:
-        # Find links with the same data (except id, created, modified)
-        sql = """
-            SELECT COUNT(*) AS count, domain_id, range_id, property_code, description, type_id,
-                begin_from, begin_to, begin_comment, end_from, end_to, end_comment
-            FROM model.link GROUP BY
-                domain_id, range_id, property_code, description, type_id,
-                begin_from, begin_to, begin_comment, end_from, end_to, end_comment
-            HAVING COUNT(*) > 1"""
-        g.execute(sql)
-        return g.cursor.fetchall()
+    def check_link_duplicates() -> List[Dict[str, Any]]:
+        return Db.check_link_duplicates()
 
     @staticmethod
     def delete_link_duplicates() -> int:
-        # Delete duplicate links which may be artifacts from imports
-        sql = """
-        DELETE FROM model.link l WHERE l.id NOT IN (
-            SELECT id FROM (
-                SELECT DISTINCT ON (domain_id, range_id, property_code, description, type_id,
-                    begin_from, begin_to, begin_comment, end_from, end_to, end_comment) *
-                FROM model.link) AS temp_table);"""
-        g.execute(sql)
-        return g.cursor.rowcount
+        return Db.delete_link_duplicates()
 
     @staticmethod
     def check_single_type_duplicates() -> List[List[str]]:
-        # Find entities with multiple types attached which should be single
         from openatlas.models.node import Node
         from openatlas.models.entity import Entity
         data = []
@@ -317,25 +227,22 @@ class Link:
             node_ids = Node.get_all_sub_ids(node)
             if not node_ids:
                 continue  # pragma: no cover
-            sql = """
-                SELECT domain_id FROM model.link
-                WHERE property_code = 'P2' AND range_id IN %(node_ids)s
-                GROUP BY domain_id HAVING COUNT(*) > 1;"""
-            g.execute(sql, {'node_ids': tuple(node_ids)})
-            for row in g.cursor.fetchall():
+            for id_ in Db.check_single_type_duplicates(node_ids):
                 offending_nodes = []
-                entity = Entity.get_by_id(row.domain_id, nodes=True)
+                entity = Entity.get_by_id(id_, nodes=True)
                 for entity_node in entity.nodes:
                     if g.nodes[entity_node.root[-1]].id != node.id:
                         continue  # pragma: no cover
                     offending_nodes.append('<a href="{url}">{label}</a> {name}'.format(
                         label=uc_first(_('remove')),
                         name=entity_node.name,
-                        url=url_for('admin_delete_single_type_duplicate',
-                                    entity_id=entity.id,
-                                    node_id=entity_node.id)))
-                data.append([link(entity),
-                             entity.class_.name,
-                             link(g.nodes[node.id]),
-                             '<br><br><br><br><br>'.join(offending_nodes)])
+                        url=url_for(
+                            'admin_delete_single_type_duplicate',
+                            entity_id=entity.id,
+                            node_id=entity_node.id)))
+                data.append([
+                    link(entity),
+                    entity.class_.name,
+                    link(g.nodes[node.id]),
+                    '<br><br><br><br><br>'.join(offending_nodes)])
         return data

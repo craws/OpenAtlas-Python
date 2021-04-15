@@ -1,4 +1,4 @@
-openatlas/static/vendor/* linguist-vendored
-install/* linguist-documentation=true
-sphinx/* linguist-documentation=true
-openatlas/static/manual/* linguist-documentation=true
+openatlas/static/vendor/** linguist-vendored
+install/** linguist-documentation
+sphinx/** linguist-documentation
+openatlas/static/manual/** linguist-documentation

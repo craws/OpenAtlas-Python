@@ -1,6 +1,5 @@
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-# from flasgger import swag_from
 from flask import Response, jsonify, url_for
 from flask_restful import Resource, marshal
 
@@ -19,9 +18,9 @@ class GetSubunitHierarchy(Resource):  # type: ignore
     def get(self, id_: int) -> Union[Tuple[Resource, int], Response]:
         parser = default_parser.parse_args()
         node = {"nodes": GetSubunitHierarchy.get_subunit_hierarchy(id_)}
-        template = NodeTemplate.node_template()
         if parser['count']:
             return jsonify(len(node['nodes']))
+        template = NodeTemplate.node_template()
         if parser['download']:
             return Download.download(data=node, template=template, name=id_)
         return marshal(node, template), 200
@@ -30,21 +29,25 @@ class GetSubunitHierarchy(Resource):  # type: ignore
     def get_subunit_hierarchy(id_: int) -> List[Dict[str, Any]]:
         try:
             entity = Entity.get_by_id(id_, nodes=True, aliases=True)
-        except EntityDoesNotExistError:  # pragma: no cover
+        except EntityDoesNotExistError:
             raise EntityDoesNotExistError
-        if not entity.class_.name == 'place' and not entity.class_.name == 'feature' \
+        if not entity.class_.name == 'place' \
+                and not entity.class_.name == 'feature' \
                 and not entity.class_.name == 'stratigraphic_unit':
-            raise InvalidSubunitError  # pragma: no cover
+            raise InvalidSubunitError
         return GetSubunitHierarchy.get_subunits_recursive(entity, [])
 
     @staticmethod
-    def get_subunits_recursive(entity: Optional[Entity], data: List[Dict[str, Any]]) \
-            -> List[Dict[str, Any]]:
+    def get_subunits_recursive(
+            entity: Optional[Entity],
+            data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         structure = get_structure(entity)
         if structure and structure['subunits']:
-            for n in structure['subunits']:
-                data.append({'id': n.id, 'label': n.name,
-                             'url': url_for('entity', id_=n.id, _external=True)})
+            for subunit in structure['subunits']:
+                data.append({
+                    'id': subunit.id,
+                    'label': subunit.name,
+                    'url': url_for('entity', id_=subunit.id, _external=True)})
         node = get_structure(entity)
         if node:
             for sub_id in node['subunits']:

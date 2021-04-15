@@ -3,10 +3,8 @@ import re
 from typing import Any, Dict, List, Optional, Union
 
 import flask
-import jinja2
 from flask import g, request, session, url_for
 from flask_babel import lazy_gettext as _
-from flask_login import current_user
 from jinja2 import escape
 from markupsafe import Markup
 from wtforms import Field, IntegerField
@@ -26,37 +24,34 @@ blueprint: flask.Blueprint = flask.Blueprint('filters', __name__)
 paragraph_re = re.compile(r'(?:\r\n|\r|\n){2,}')
 
 
-@jinja2.contextfilter
-@blueprint.app_template_filter()
-def link(self: Any, entity: Entity) -> str:
+@app.template_filter()
+def link(entity: Entity) -> str:
     return display.link(entity)
 
 
-@jinja2.contextfilter
-@blueprint.app_template_filter()
-def button(self: Any,
-           label: str,
-           url: Optional[str] = '#',
-           css: Optional[str] = 'primary',
-           id_: Optional[str] = None,
-           onclick: Optional[str] = '') -> str:
+@app.template_filter()
+def button(
+        label: str,
+        url: Optional[str] = '#',
+        css: Optional[str] = 'primary',
+        id_: Optional[str] = None,
+        onclick: Optional[str] = '') -> str:
     return display.button(label, url, css, id_, onclick)
 
 
-@jinja2.contextfilter
-@blueprint.app_template_filter()
-def display_citation_example(self: Any, code: str) -> str:
+@app.template_filter()
+def display_citation_example(code: str) -> str:
     text = Content.get_translation('citation_example')
     if not text or code != 'reference':
         return ''
-    return Markup('<h1>{title}</h1>{text}'.format(
-        title=display.uc_first(_('citation_example')),
-        text=text))
+    return Markup(
+        '<h1>{title}</h1>{text}'.format(
+            title=display.uc_first(_('citation_example')),
+            text=text))
 
 
-@jinja2.contextfilter
-@blueprint.app_template_filter()
-def siblings_pager(self: Any, entity: Entity, structure: Optional[Dict[str, Any]]) -> str:
+@app.template_filter()
+def siblings_pager(entity: Entity, structure: Optional[Dict[str, Any]]) -> str:
     if not structure or len(structure['siblings']) < 2:
         return ''
     structure['siblings'].sort(key=lambda x: x.id)
@@ -70,17 +65,17 @@ def siblings_pager(self: Any, entity: Entity, structure: Optional[Dict[str, Any]
             next_id = sibling.id
             position = counter
             break
-    return Markup('{previous} {next} {position} {of_label} {count}'.format(
-        previous=display.button('<', url_for('entity_view', id_=prev_id)) if prev_id else '',
-        next=display.button('>', url_for('entity_view', id_=next_id)) if next_id else '',
-        position=position,
-        of_label=_('of'),
-        count=len(structure['siblings'])))
+    return Markup(
+        '{previous} {next} {position} {of_label} {count}'.format(
+            previous=display.button('<', url_for('entity_view', id_=prev_id)) if prev_id else '',
+            next=display.button('>', url_for('entity_view', id_=next_id)) if next_id else '',
+            position=position,
+            of_label=_('of'),
+            count=len(structure['siblings'])))
 
 
-@jinja2.contextfilter
-@blueprint.app_template_filter()
-def lay_breadcrumbs(self: Any, crumbs: List[Any]) -> str:
+@app.template_filter()
+def breadcrumb(crumbs: List[Any]) -> str:
     items = []
     for item in crumbs:
         if not item:
@@ -90,81 +85,49 @@ def lay_breadcrumbs(self: Any, crumbs: List[Any]) -> str:
         elif isinstance(item, list):
             items.append('<a href="{url}">{label}</a>'.format(
                 url=item[1],
-                label=display.truncate(display.uc_first(str(item[0])))))
+                label=display.uc_first(str(item[0]))))
         else:
             items.append(display.uc_first(item))
     return Markup('&nbsp;>&nbsp; '.join(items))
 
 
-@jinja2.contextfilter
-@blueprint.app_template_filter()
-def note(self: Any, entity: Entity) -> str:
-    if not current_user.settings['module_notes'] or not util.is_authorized('contributor'):
-        return ''  # pragma no cover
-    if not isinstance(entity.note, str):
-        html = '<div class="toolbar">{insert}</div>'.format(
-            insert=display.button(_('add note'), url_for('note_insert', entity_id=entity.id)))
-    else:
-        html = '''
-            <h2>{label}</h2>
-            <div class="note">{note}</div>
-            <div class="toolbar">{edit} {delete}</div>'''.format(
-            label=display.uc_first(_('note')),
-            note=entity.note.replace('\r\n', '<br>'),
-            edit=display.button(_('edit note'), url_for('note_update', entity_id=entity.id)),
-            delete=display.button(
-                _('delete'),
-                url_for('note_delete', entity_id=entity.id),
-                onclick="return confirm('" + _('Delete note?') + "');"))
-    return Markup(html)
-
-
-@jinja2.contextfilter
-@blueprint.app_template_filter()
-def is_authorized(self: Any, group: str) -> bool:
+@app.template_filter()
+def is_authorized(group: str) -> bool:
     return util.is_authorized(group)
 
 
-@jinja2.contextfilter
-@blueprint.app_template_filter()
-def tab_header(self: Any,
-               item: str,
-               table: Optional[Table] = None,
-               active: Optional[bool] = False) -> str:
+@app.template_filter()
+def tab_header(item: str, table: Optional[Table] = None, active: Optional[bool] = False) -> str:
     return Markup(tab.tab_header(item, table, active))
 
 
-@jinja2.contextfilter
-@blueprint.app_template_filter()
-def uc_first(self: Any, string: str) -> str:
+@app.template_filter()
+def uc_first(string: str) -> str:
     return display.uc_first(string)
 
 
-@jinja2.contextfilter
-@blueprint.app_template_filter()
-def display_info(self: Any, data: Dict[str, Union[str, List[str]]]) -> str:
+@app.template_filter()
+def display_info(data: Dict[str, Union[str, List[str]]]) -> str:
     html = '<div class="data-table">'
     for label, value in data.items():
         if value or value == 0:
             if isinstance(value, list):
                 value = '<br>'.join(value)
-            html += '''
+            html += """
                 <div class="table-row">
                     <div>{label}</div>
                     <div class="table-cell">{value}</div>
-                </div>'''.format(label=display.uc_first(label), value=value)
+                </div>""".format(label=display.uc_first(label), value=value)
     return Markup(html + '</div>')
 
 
-@jinja2.contextfilter
-@blueprint.app_template_filter()
-def bookmark_toggle(self: Any, entity_id: int) -> str:
+@app.template_filter()
+def bookmark_toggle(entity_id: int) -> str:
     return Markup(display.bookmark_toggle(entity_id))
 
 
-@jinja2.contextfilter
-@blueprint.app_template_filter()
-def display_move_form(self: Any, form: Any, root_name: str) -> str:
+@app.template_filter()
+def display_move_form(form: Any, root_name: str) -> str:
     from openatlas.forms.field import TreeField
     html = ''
     for field in form:
@@ -184,11 +147,8 @@ def display_move_form(self: Any, form: Any, root_name: str) -> str:
         table=table.display('move'))
 
 
-@jinja2.contextfilter
-@blueprint.app_template_filter()
-def table_select_model(self: Any,
-                       name: str,
-                       selected: Union[CidocClass, CidocProperty, None] = None) -> str:
+@app.template_filter()
+def table_select_model(name: str, selected: Union[CidocClass, CidocProperty, None] = None) -> str:
     if name in ['domain', 'range']:
         entities = g.cidoc_classes
     else:
@@ -199,15 +159,15 @@ def table_select_model(self: Any,
 
     for id_ in entities:
         table.rows.append([
-            """<a
-                    onclick="selectFromTable(this, '{name}', '{entity_id}', '{value}')"
+            """
+                <a onclick="selectFromTable(this, '{name}', '{entity_id}', '{value}')"
                     href="#">{label}</a>""".format(
                 name=name,
                 entity_id=id_,
                 value=entities[id_].code + ' ' + entities[id_].name,
                 label=entities[id_].code),
-            """<a
-                    onclick="selectFromTable(this, '{name}', '{entity_id}', '{value}')"
+            """
+                <a onclick="selectFromTable(this, '{name}', '{entity_id}', '{value}')"
                     href="#">{label}</a>""".format(
                 name=name,
                 entity_id=id_,
@@ -244,9 +204,8 @@ def table_select_model(self: Any,
     return html
 
 
-@jinja2.contextfilter
-@blueprint.app_template_filter()
-def description(self: Any, entity: Union[Entity, Project]) -> str:
+@app.template_filter()
+def description(entity: Union[Entity, Project]) -> str:
     if not entity.description:
         return ''
     label = _('description')
@@ -257,9 +216,8 @@ def description(self: Any, entity: Union[Entity, Project]) -> str:
         description=entity.description.replace('\r\n', '<br>')))
 
 
-@jinja2.contextfilter
-@blueprint.app_template_filter()
-def download_button(self: Any, entity: Entity) -> str:
+@app.template_filter()
+def download_button(entity: Entity) -> str:
     if entity.class_.view != 'file':
         return ''
     html = '<span class="error">{msg}</span>'.format(msg=display.uc_first(_('missing file')))
@@ -269,9 +227,8 @@ def download_button(self: Any, entity: Entity) -> str:
     return Markup(html)
 
 
-@jinja2.contextfilter
-@blueprint.app_template_filter()
-def display_profile_image(self: Any, entity: Entity) -> str:
+@app.template_filter()
+def display_profile_image(entity: Entity) -> str:
     if not entity.image_id:
         return ''
     path = display.get_file_path(entity.image_id)
@@ -279,10 +236,10 @@ def display_profile_image(self: Any, entity: Entity) -> str:
         return ''  # pragma: no cover
     if entity.class_.view == 'file':
         if path.suffix.lower() in app.config['DISPLAY_FILE_EXTENSIONS']:
-            html = '''
+            html = """
                 <a href="{url}" rel="noopener noreferrer" target="_blank">
                     <img style="max-width:{width}px;" alt="image" src="{url}">
-                </a>'''.format(
+                </a>""".format(
                 url=url_for('display_file', filename=path.name),
                 width=session['settings']['profile_image_width'])
         else:
@@ -298,35 +255,33 @@ def display_profile_image(self: Any, entity: Entity) -> str:
     return Markup('<div id="profile_image_div">{html}</div>'.format(html=html))
 
 
-@jinja2.contextfilter
-@blueprint.app_template_filter()
-def display_content_translation(self: Any, text: str) -> str:
+@app.template_filter()
+def display_content_translation(text: str) -> str:
     from openatlas.models.content import Content
     return Content.get_translation(text)
 
 
-@jinja2.contextfilter
-@blueprint.app_template_filter()
-def manual(self: Any, site: str) -> str:  # Creates a link to a manual page
-    try:
-        parts = site.split('/')
-        first = parts[0]
-        second = (parts[1] if parts[1] != 'node' else 'type') + '.html'
-        path = pathlib.Path(app.root_path) / 'static' / 'manual' / first / second
-        if not path.exists():
-            # print('Missing manual link: ' + str(path))
-            return ''
-    except:  # pragma: no cover
+@app.template_filter()
+def manual(site: str) -> str:  # Creates a link to a manual page
+    parts = site.split('/')
+    if len(parts) < 2:
+        return ''
+    first = parts[0]
+    second = (parts[1] if parts[1] != 'node' else 'type') + '.html'
+    path = pathlib.Path(app.root_path) / 'static' / 'manual' / first / second
+    if not path.exists():
+        # print('Missing manual link: ' + str(path))
         return ''
     return Markup("""
         <a class="manual" href="/static/manual/{site}.html" target="_blank" title="{label}">
             <i class="fas fa-book"></i></a>""".format(site=site, label=display.uc_first('manual')))
 
 
-def add_row(field: Field,
-            label: Optional[str] = None,
-            value: Optional[str] = None,
-            form_id: Optional[str] = None) -> str:
+def add_row(
+        field: Field,
+        label: Optional[str] = None,
+        value: Optional[str] = None,
+        form_id: Optional[str] = None) -> str:
     field.label.text = display.uc_first(field.label.text)
     if field.flags.required and form_id != 'login-form' and field.label.text:
         field.label.text += ' *'
@@ -350,13 +305,12 @@ def add_row(field: Field,
         errors=errors)
 
 
-@jinja2.contextfilter
-@blueprint.app_template_filter()
-def display_form(self: Any,
-                 form: Any,
-                 form_id: Optional[str] = None,
-                 for_persons: bool = False,
-                 manual_page: Optional[str] = None) -> str:
+@app.template_filter()
+def display_form(
+        form: Any,
+        form_id: Optional[str] = None,
+        for_persons: bool = False,
+        manual_page: Optional[str] = None) -> str:
     from openatlas.forms.field import ValueFloatField
 
     def display_value_type_fields(node_: Node, root: Optional[Node] = None) -> str:
@@ -378,6 +332,7 @@ def display_form(self: Any,
                 value_fields=display_value_type_fields(sub, root))
         return html_
 
+    reference_systems_added = False
     html = ''
     for field in form:
         if isinstance(field, ValueFloatField) or field.id.startswith(
@@ -417,7 +372,7 @@ def display_form(self: Any,
             class_ = app.config['CSS']['button']['primary']
             buttons = []
             if manual_page:
-                buttons.append(escape(manual(None, manual_page)))
+                buttons.append(escape(manual(manual_page)))
             buttons.append(field(class_=class_))
             if 'insert_and_continue' in form:
                 buttons.append(form.insert_and_continue(class_=class_))
@@ -431,12 +386,9 @@ def display_form(self: Any,
 
         # External reference system
         if field.id.startswith('reference_system_id_'):
-            precision_field = getattr(form, field.id.replace('id_', 'precision_'))
-            class_ = field.label.text if field.label.text in ['GeoNames', 'Wikidata'] else ''
-            html += add_row(field, field.label, ' '.join([
-                str(field(class_=class_)),
-                str(precision_field.label),
-                str(precision_field)]))
+            if not reference_systems_added:
+                html += display.add_reference_systems_to_form(form)
+                reference_systems_added = True
             continue
         html += add_row(field, form_id=form_id)
 
@@ -449,41 +401,18 @@ def display_form(self: Any,
         multi='enctype="multipart/form-data"' if hasattr(form, 'file') else ''))
 
 
-@jinja2.contextfilter
-@blueprint.app_template_filter()
-def test_file(self: Any, file_name: str) -> Optional[str]:
+@app.template_filter()
+def test_file(file_name: str) -> Optional[str]:
     return file_name if (pathlib.Path(app.root_path) / file_name).is_file() else None
 
 
-@jinja2.contextfilter
-@blueprint.app_template_filter()
-def sanitize(self: Any, string: str) -> str:
+@app.template_filter()
+def sanitize(string: str) -> str:
     return display.sanitize(string)
 
 
-@jinja2.contextfilter
-@blueprint.app_template_filter()
-def display_delete_link(self: Any, entity: Entity) -> str:
-    """ Build a link to delete an entity with a JavaScript confirmation dialog."""
-    if entity.class_.name == 'source_translation':
-        url = url_for('translation_delete', id_=entity.id)
-    elif entity.id in g.nodes:
-        url = url_for('node_delete', id_=entity.id)
-    else:
-        url = url_for('index', view=entity.class_.view, delete_id=entity.id)
-    confirm = _('Delete %(name)s?', name=entity.name.replace('\'', ''))
-    return display.button(
-        _('delete'),
-        url,
-        onclick="return confirm('{confirm}')").format(confirm=confirm)
-
-
-@jinja2.contextfilter
-@blueprint.app_template_filter()
-def display_menu(self: Any, entity: Optional[Entity], origin: Optional[Entity]) -> str:
-    """ Returns menu HTML with (bold) marked selected item."""
-    if not current_user.is_authenticated:
-        return ''
+@app.template_filter()
+def display_menu(entity: Optional[Entity], origin: Optional[Entity]) -> str:
     view_name = ''
     if entity:
         view_name = entity.class_.view
@@ -491,56 +420,32 @@ def display_menu(self: Any, entity: Optional[Entity], origin: Optional[Entity]) 
         view_name = origin.class_.view
     html = ''
     for item in ['source', 'event', 'actor', 'place', 'artifact', 'reference']:
-        css = ''
+        active = ''
         request_parts = request.path.split('/')
         if (view_name == item) or request.path.startswith('/index/' + item):
-            css = 'active'
+            active = 'active'
         elif len(request_parts) > 2 and request.path.startswith('/insert/'):
             name = request_parts[2]
             if name in g.class_view_mapping and g.class_view_mapping[name] == item:
-                css = 'active'
-
-        html += '<a href="/index/{item}" class="nav-item nav-link {css}">{label}</a>'.format(
-            css=css,
+                active = 'active'
+        html += '<a href="/index/{item}" class="nav-item nav-link {active}">{label}</a>'.format(
+            active=active,
             item=item,
             label=display.uc_first(_(item)))
-    css = ''
-    if request.path.startswith('/types') or request.path.startswith('/insert/type') or (
-            entity and entity.class_.view == 'type'):
-        css = 'active'
-    html += '<a href="{url}" class="nav-item nav-link {css}">{label}</a>'.format(
-        css=css,
+    active = ''
+    if request.path.startswith('/types') \
+            or request.path.startswith('/insert/type') \
+            or (entity and entity.class_.view == 'type'):
+        active = 'active'
+    html += '<a href="{url}" class="nav-item nav-link {active}">{label}</a>'.format(
+        active=active,
         url=url_for('node_index'),
         label=display.uc_first(_('types')))
-    return html
+    return Markup(html)
 
 
-@jinja2.contextfilter
-@blueprint.app_template_filter()
-def display_debug_info(self: Any, debug_model: Dict[str, Any], form: Any) -> str:
-    """ Returns HTML with debug information about database queries and form errors."""
-    html = ''
-    for name, value in debug_model.items():
-        if name in ['current']:
-            continue  # Don't display current time counter
-        if name not in ['sql']:
-            value = '{:10.2f}'.format(value)
-        html += """
-            <div>
-                <div>{name}</div>
-                <div class="table-cell" style="text-align:right;">
-                    {value}
-                </div>
-            </div>""".format(name=name, value=value)
-    if form and hasattr(form, 'errors'):
-        for fieldName, errorMessages in form.errors.items():
-            html += fieldName + ' - ' + errorMessages[0] + '<br>'
-    return html
-
-
-@jinja2.contextfilter
-@blueprint.app_template_filter()
-def display_external_references(self: Any, entity: Entity) -> str:
+@app.template_filter()
+def display_external_references(entity: Entity) -> str:
     system_links = []
     for link_ in entity.reference_systems:
         system = g.reference_systems[link_.domain.id]
@@ -551,9 +456,9 @@ def display_external_references(self: Any, entity: Entity) -> str:
                 name=name)
         system_links.append('''{name} ({match} {at} {system_name})'''.format(
             name=name,
-            match= g.nodes[link_.type.id].name,
+            match=g.nodes[link_.type.id].name,
             at=_('at'),
-            system_name= display.link(link_.domain)))
+            system_name=display.link(link_.domain)))
     html = '<br>'.join(system_links)
     if not html:
         return ''

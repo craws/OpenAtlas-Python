@@ -2,7 +2,8 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 import numpy
-from flask import g
+
+from openatlas.database.date import Date as Db
 
 if TYPE_CHECKING:  # pragma: no cover - Type checking is disabled in tests
     from openatlas.models.entity import Entity
@@ -14,11 +15,12 @@ class Date:
     @staticmethod
     def current_date_for_filename() -> str:
         today = datetime.today()
-        return '{year}-{month}-{day}_{hour}{minute}'.format(year=today.year,
-                                                            month=str(today.month).zfill(2),
-                                                            day=str(today.day).zfill(2),
-                                                            hour=str(today.hour).zfill(2),
-                                                            minute=str(today.minute).zfill(2))
+        return '{year}-{month}-{day}_{hour}{minute}'.format(
+            year=today.year,
+            month=str(today.month).zfill(2),
+            day=str(today.day).zfill(2),
+            hour=str(today.hour).zfill(2),
+            minute=str(today.minute).zfill(2))
 
     @staticmethod
     def timestamp_to_datetime64(string: str) -> Optional[numpy.datetime64]:
@@ -45,6 +47,25 @@ class Date:
         return format(year, '04d') + '-' + format(month, '02d') + '-' + format(day, '02d') + postfix
 
     @staticmethod
+    def get_invalid_dates() -> List['Entity']:
+        """ Search for entities with invalid date combinations, e.g. begin after end"""
+        from openatlas.models.entity import Entity
+        return [Entity.get_by_id(row['id'], nodes=True) for row in Db.get_invalid_dates()]
+
+    @staticmethod
+    def invalid_involvement_dates() -> List['Link']:
+        """ Search invalid event participation dates and return the actors
+            e.g. attending person was born after the event ended"""
+        from openatlas.models.link import Link
+        return [Link.get_by_id(row['id']) for row in Db.invalid_involvement_dates()]
+
+    @staticmethod
+    def get_invalid_link_dates() -> List['Link']:
+        """ Search for links with invalid date combinations, e.g. begin after end"""
+        from openatlas.models.link import Link
+        return [Link.get_by_id(row['id']) for row in Db.get_invalid_link_dates()]
+
+    @staticmethod
     def form_to_datetime64(year: Any,
                            month: Any,
                            day: Any,
@@ -57,13 +78,10 @@ class Date:
         def is_leap_year(year_: int) -> bool:
             if year_ % 400 == 0:  # e.g. 2000
                 return True
-
             if year_ % 100 == 0:  # e.g. 1000
                 return False
-
             if year_ % 4 == 0:  # e.g. 1996
                 return True
-
             return False
 
         def get_last_day_of_month(year_: int, month_: int) -> int:
@@ -93,59 +111,3 @@ class Date:
         except ValueError:
             return None
         return datetime_
-
-    @staticmethod
-    def invalid_involvement_dates() -> List['Link']:
-        """ Search invalid event participation dates and return the actors
-            e.g. attending person was born after the event ended"""
-        from openatlas.models.link import Link
-        sql = """
-            SELECT l.id FROM model.entity actor
-            JOIN model.link l ON actor.id = l.range_id
-                AND l.property_code IN ('P11', 'P14', 'P22', 'P23')
-            JOIN model.entity event ON l.domain_id = event.id
-            WHERE
-                (actor.begin_from IS NOT NULL AND l.end_from IS NOT NULL
-                    AND actor.begin_from > l.end_from)
-                OR (actor.begin_to IS NOT NULL AND l.end_to IS NOT NULL
-                    AND actor.begin_to > l.end_to)
-                OR (actor.begin_from IS NOT NULL AND event.end_from IS NOT NULL
-                    AND actor.begin_from > event.end_from)
-                OR (actor.begin_to IS NOT NULL AND event.end_to IS NOT NULL
-                    AND actor.begin_to > event.end_to)
-                OR (l.begin_from IS NOT NULL AND l.end_from IS NOT NULL
-                    AND l.begin_from > l.end_from)
-                OR (l.begin_to IS NOT NULL AND l.end_to IS NOT NULL
-                    AND l.begin_to > l.end_to)
-                OR (l.begin_from IS NOT NULL AND event.end_from IS NOT NULL
-                    AND l.begin_from > event.end_from)
-                OR (l.begin_to IS NOT NULL AND event.end_to IS NOT NULL
-                    AND l.begin_to > event.end_to)
-                OR (l.end_from IS NOT NULL AND event.end_to IS NOT NULL
-                    AND l.end_from > event.end_to);"""
-        g.execute(sql)
-        return [Link.get_by_id(row.id) for row in g.cursor.fetchall()]
-
-    @staticmethod
-    def get_invalid_dates() -> List['Entity']:
-        """ Search for entities with invalid date combinations, e.g. begin after end"""
-        from openatlas.models.entity import Entity
-        sql = """
-            SELECT id FROM model.entity WHERE
-                begin_from > begin_to OR end_from > end_to
-                OR (begin_from IS NOT NULL AND end_from IS NOT NULL AND begin_from > end_from)
-                OR (begin_to IS NOT NULL AND end_to IS NOT NULL AND begin_to > end_to);"""
-        g.execute(sql)
-        return [Entity.get_by_id(row.id, nodes=True) for row in g.cursor.fetchall()]
-
-    @staticmethod
-    def get_invalid_link_dates() -> List['Link']:
-        """ Search for links with invalid date combinations, e.g. begin after end"""
-        from openatlas.models.link import Link
-        sql = """
-            SELECT id FROM model.link WHERE
-                begin_from > begin_to OR end_from > end_to
-                OR (begin_from IS NOT NULL AND end_from IS NOT NULL AND begin_from > end_from)
-                OR (begin_to IS NOT NULL AND end_to IS NOT NULL AND begin_to > end_to);"""
-        g.execute(sql)
-        return [Link.get_by_id(row.id) for row in g.cursor.fetchall()]

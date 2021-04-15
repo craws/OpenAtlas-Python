@@ -1,8 +1,19 @@
 class Changelog:
 
     versions = {
-        '6.1.0': ['TBA', {
-            'feature': {}}],
+        '6.2.0': ['TBA', {
+            'feature': {
+                '1284': 'Show image when editing a place or artifact',
+                '1496': 'API: Endpoints for entities of type'}}],
+        '6.1.0': ['2021-04-05', {
+            'feature': {
+                '1215': 'Time spans for types',
+                '1443': 'List view for untyped entities',
+                '1457': 'Public notes',
+                '963': 'API: Add type of places to export',
+                '1402': 'API: CSV export in API',
+                '1487': 'API: Endpoint for type hierarchies',
+                '1489': 'API: Geometry for artifacts'}}],
         '6.0.1': ['2021-03-15', {
             'fix': {
                 '1485': 'Cannot choose multiple for custom type'}}],
@@ -461,4 +472,4 @@ class Changelog:
         '0.0.1': ['2014-11-05', {
             'feature': {
                 '': 'Initial version based on the "Zend Base" project from '
-                    '<a target="_blank" rel="noopener noreferrer" href="https://craws.net">craws.net</a>'}}]}
+                    '<a target="_blank" href="https://craws.net">craws.net</a>'}}]}

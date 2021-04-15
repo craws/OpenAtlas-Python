@@ -12,6 +12,7 @@ from wtforms import BooleanField, FileField, StringField, SubmitField, TextAreaF
 from wtforms.validators import InputRequired
 
 from openatlas import app, logger
+from openatlas.database.connect import Transaction
 from openatlas.models.date import Date
 from openatlas.models.entity import Entity
 from openatlas.models.imports import Import
@@ -41,11 +42,11 @@ def import_index() -> str:
     table = Table([_('project'), _('entities'), _('description')])
     for project in Import.get_all_projects():
         table.rows.append([link(project), format_number(project.count), project.description])
-    return render_template('import/index.html',
-                           table=table,
-                           title=_('import'),
-                           crumbs=[[_('admin'), url_for('admin_index') + '#tab-data'],
-                                   _('import')])
+    return render_template(
+        'import/index.html',
+        table=table,
+        title=_('import'),
+        crumbs=[[_('admin'), url_for('admin_index') + '#tab-data'], _('import')])
 
 
 @app.route('/import/project/insert', methods=['POST', 'GET'])
@@ -56,13 +57,15 @@ def import_project_insert() -> Union[str, Response]:
         id_ = Import.insert_project(form.name.data, form.description.data)
         flash(_('project inserted'), 'info')
         return redirect(url_for('import_project_view', id_=id_))
-    return render_template('display_form.html',
-                           form=form,
-                           manual_page='admin/import',
-                           title=_('import'),
-                           crumbs=[[_('admin'), url_for('admin_index') + '#tab-data'],
-                                   [_('import'), url_for('import_index')],
-                                   '+ ' + uc_first(_('project'))])
+    return render_template(
+        'display_form.html',
+        form=form,
+        manual_page='admin/import',
+        title=_('import'),
+        crumbs=[
+            [_('admin'), url_for('admin_index') + '#tab-data'],
+            [_('import'), url_for('import_index')],
+            '+ ' + uc_first(_('project'))])
 
 
 @app.route('/import/project/view/<int:id_>')
@@ -70,19 +73,22 @@ def import_project_insert() -> Union[str, Response]:
 def import_project_view(id_: int) -> str:
     table = Table([_('name'), _('class'), _('description'), 'origin ID', _('date')])
     for entity in Entity.get_by_project_id(id_):
-        table.rows.append([link(entity),
-                           entity.class_.label,
-                           entity.description,
-                           entity.origin_id,
-                           format_date(entity.created)])
+        table.rows.append(
+            [link(entity),
+             entity.class_.label,
+             entity.description,
+             entity.origin_id,
+             format_date(entity.created)])
     project = Import.get_project_by_id(id_)
-    return render_template('import/project_view.html',
-                           project=project,
-                           table=table,
-                           title=_('import'),
-                           crumbs=[[_('admin'), url_for('admin_index') + '#tab-data'],
-                                   [_('import'), url_for('import_index')],
-                                   project.name])
+    return render_template(
+        'import/project_view.html',
+        project=project,
+        table=table,
+        title=_('import'),
+        crumbs=[
+            [_('admin'), url_for('admin_index') + '#tab-data'],
+            [_('import'), url_for('import_index')],
+            project.name])
 
 
 @app.route('/import/project/update/<int:id_>', methods=['POST', 'GET'])
@@ -97,14 +103,16 @@ def import_project_update(id_: int) -> Union[str, Response]:
         Import.update_project(project)
         flash(_('project updated'), 'info')
         return redirect(url_for('import_project_view', id_=project.id))
-    return render_template('display_form.html',
-                           form=form,
-                           manual_page='admin/import',
-                           title=_('import'),
-                           crumbs=[[_('admin'), url_for('admin_index') + '#tab-data'],
-                                   [_('import'), url_for('import_index')],
-                                   project,
-                                   _('edit')])
+    return render_template(
+        'display_form.html',
+        form=form,
+        manual_page='admin/import',
+        title=_('import'),
+        crumbs=[
+            [_('admin'), url_for('admin_index') + '#tab-data'],
+            [_('import'), url_for('import_index')],
+            project,
+            _('edit')])
 
 
 @app.route('/import/project/delete/<int:id_>')
@@ -146,11 +154,11 @@ def import_data(project_id: int, class_: str) -> str:
     if form.validate_on_submit():
         file_ = request.files['file']
         file_path = app.config['TMP_DIR'] / secure_filename(file_.filename)  # type: ignore
-        columns: Dict[str, List[str]] = {'allowed': ['name', 'id', 'description', 'begin_from',
-                                                     'begin_to', 'begin_comment', 'end_from',
-                                                     'end_to', 'end_comment', 'type_ids'],
-                                         'valid': [],
-                                         'invalid': []}
+        columns: Dict[str, List[str]] = {
+            'allowed': ['name', 'id', 'description', 'begin_from', 'begin_to', 'begin_comment',
+                        'end_from', 'end_to', 'end_comment', 'type_ids'],
+            'valid': [],
+            'invalid': []}
         if class_ == 'place':
             columns['allowed'] += ['easting', 'northing']
         try:
@@ -226,7 +234,7 @@ def import_data(project_id: int, class_: str) -> str:
             doubles = [item for item, count in collections.Counter(origin_ids).items() if count > 1]
             if doubles:  # pragma: no cover
                 messages['error'].append(_('double IDs in import') + ': ' + ', '.join(doubles))
-            existing = Import.check_origin_ids(project, origin_ids) if origin_ids else None
+            existing = Import.get_origin_ids(project, origin_ids) if origin_ids else None
             if existing:
                 messages['error'].append(_('IDs already in database') + ': ' + ', '.join(existing))
             if form.duplicate.data:  # Check for possible duplicates
@@ -237,35 +245,38 @@ def import_data(project_id: int, class_: str) -> str:
                 raise Exception()
         except Exception:  # pragma: no cover
             flash(_('error at import'), 'error')
-            return render_template('import/import_data.html',
-                                   form=form,
-                                   messages=messages,
-                                   file_data=file_data,
-                                   title=_('import'),
-                                   crumbs=[[_('admin'), url_for('admin_index') + '#tab-data'],
-                                           [_('import'), url_for('import_index')],
-                                           project,
-                                           class_label])
+            return render_template(
+                'import/import_data.html',
+                form=form,
+                messages=messages,
+                file_data=file_data,
+                title=_('import'),
+                crumbs=[
+                    [_('admin'), url_for('admin_index') + '#tab-data'],
+                    [_('import'), url_for('import_index')],
+                    project,
+                    class_label])
 
         if not form.preview.data and checked_data:
             if not file_data['backup_too_old'] or app.config['IS_UNIT_TEST']:
-                g.cursor.execute('BEGIN')
+                Transaction.begin()
                 try:
                     Import.import_data(project, class_, checked_data)
-                    g.cursor.execute('COMMIT')
+                    Transaction.commit()
                     logger.log('info', 'import', 'import: ' + str(len(checked_data)))
                     flash(_('import of') + ': ' + str(len(checked_data)), 'info')
                     imported = True
                 except Exception as e:  # pragma: no cover
-                    g.cursor.execute('ROLLBACK')
+                    Transaction.rollback()
                     logger.log('error', 'import', 'import failed', e)
                     flash(_('error transaction'), 'error')
-    return render_template('import/import_data.html',
-                           project=project,
-                           form=form,
-                           file_data=file_data,
-                           class_=class_,
-                           class_label=class_label,
-                           table=table,
-                           imported=imported,
-                           messages=messages)
+    return render_template(
+        'import/import_data.html',
+        project=project,
+        form=form,
+        file_data=file_data,
+        class_=class_,
+        class_label=class_label,
+        table=table,
+        imported=imported,
+        messages=messages)

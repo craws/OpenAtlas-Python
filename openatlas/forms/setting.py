@@ -12,7 +12,6 @@ class ContentForm(FlaskForm):  # type: ignore
 
 class ModulesForm(FlaskForm):  # type: ignore
     module_map_overlay = BooleanField(_('map overlay'))
-    module_notes = BooleanField(_('notes'))
     module_sub_units = BooleanField(_('sub units'))
     save = SubmitField(_('save'))
 
@@ -30,7 +29,6 @@ class GeneralForm(FlaskForm):  # type: ignore
         _('log level'),
         coerce=int,
         choices=list(app.config['LOG_LEVELS'].items()))
-    debug_mode = BooleanField(_('debug mode'))
     random_password_length = IntegerField(_('random password length'))
     minimum_password_length = IntegerField(_('minimum password length'))
     reset_confirm_hours = IntegerField(_('reset confirm hours'))

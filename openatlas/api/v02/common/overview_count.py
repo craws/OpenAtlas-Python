@@ -1,7 +1,6 @@
 from typing import Tuple, Union
 
-# from flasgger import swag_from
-from flask import Response, url_for
+from flask import Response
 from flask_restful import Resource, marshal
 
 from openatlas.api.v02.templates.overview_count import OverviewCountTemplate
@@ -16,5 +15,4 @@ class OverviewCount(Resource):  # type: ignore
         overview = []
         for name, count in Entity.get_overview_counts().items():
             overview.append({'systemClass': name, 'count': count})
-        template = OverviewCountTemplate.overview_template()
-        return marshal(overview, template), 200
+        return marshal(overview, OverviewCountTemplate.overview_template()), 200

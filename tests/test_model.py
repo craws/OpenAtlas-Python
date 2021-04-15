@@ -30,9 +30,7 @@ class ModelTests(TestBaseCase):
             with app.test_request_context():  # Insert data to display in network view
                 app.preprocess_request()  # type: ignore
                 actor = Entity.insert('person', 'King Arthur')
-                event = Entity.insert(
-                    'activity',
-                    'Battle of Camlann - a long name that has to be truncated ..')
+                event = Entity.insert('activity', 20*'Battle of Camlann - test truncated ..')
                 source = Entity.insert('source', 'The source')
                 actor.link('P11', event)
                 source.link('P67', event)
@@ -42,7 +40,6 @@ class ModelTests(TestBaseCase):
             data = {'orphans': True, 'width': 100, 'height': 40, 'distance': -666, 'charge': 500}
             rv = self.app.post(url_for('model_network'), data=data)
             assert b'666' in rv.data
-
             rv = self.app.get(url_for('class_entities', code='E21'))
             assert b'King Arthur' in rv.data
 

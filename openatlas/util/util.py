@@ -65,9 +65,10 @@ def get_file_stats(path: Path = app.config['UPLOAD_DIR']) -> Dict[Union[int, str
     file_stats: Dict[Union[int, str], Any] = {}
     for file in path.iterdir():
         if file.stem.isdigit():
-            file_stats[int(file.stem)] = {'ext': file.suffix,
-                                          'size': file.stat().st_size,
-                                          'date': file.stat().st_ctime}
+            file_stats[int(file.stem)] = {
+                'ext': file.suffix,
+                'size': file.stat().st_size,
+                'date': file.stat().st_ctime}
     return file_stats
 
 

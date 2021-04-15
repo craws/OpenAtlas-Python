@@ -12,6 +12,7 @@ parameters:
       type: number
   - $ref: '#/components/parameters/showParam'
   - $ref: '#/components/parameters/downloadParam'
+  - $ref: '#/components/parameters/exportParam'
 responses:
   '200':
     description: A geojson representation of the specified entity

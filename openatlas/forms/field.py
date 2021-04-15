@@ -94,13 +94,14 @@ class TableMultiSelect(HiddenInput):  # type: ignore
                 </div>
             </div>
             <script>
-            </script>""".format(name=field.id,
-                                button_class=app.config['CSS']['button']['secondary'],
-                                change_label=uc_first(_('change')),
-                                close_label=uc_first(_('close')),
-                                title=uc_first(_(field.id.replace('_', ' '))),
-                                selection='<br>'.join(selection),
-                                table=table.display(field.id))
+            </script>""".format(
+            name=field.id,
+            button_class=app.config['CSS']['button']['secondary'],
+            change_label=uc_first(_('change')),
+            close_label=uc_first(_('close')),
+            title=uc_first(_(field.id.replace('_', ' '))),
+            selection='<br>'.join(selection),
+            table=table.display(field.id))
         return super(TableMultiSelect, self).__call__(field, **kwargs) + html
 
 
@@ -119,8 +120,10 @@ class TableSelect(HiddenInput):  # type: ignore
         place_fields = ['residence', 'begins_in', 'ends_in', 'place_to', 'place_from']
         class_ = 'place' if field.id in place_fields else field.id
         if class_ == 'place':
-            aliases = current_user.settings['table_show_aliases']
-            entities = Entity.get_by_class('place', nodes=True, aliases=aliases)
+            entities = Entity.get_by_class(
+                'place',
+                nodes=True,
+                aliases=current_user.settings['table_show_aliases'])
         elif class_ == 'reference':
             entities = Entity.get_by_class('bibliography') + \
                        Entity.get_by_class('edition') + \
@@ -139,8 +142,8 @@ class TableSelect(HiddenInput):  # type: ignore
             if len(entity.aliases) > 0:
                 data[0] = """
                     <p>
-                        <a onclick="selectFromTable(this, '{name}', {entity_id}, '{entity_name_clean}')"
-                            href="#">{entity_name}</a>
+                        <a onclick="selectFromTable(this, '{name}', {entity_id},
+                            '{entity_name_clean}')" href="#">{entity_name}</a>
                     </p>""".format(
                     name=field.id,
                     entity_id=entity.id,
@@ -148,9 +151,8 @@ class TableSelect(HiddenInput):  # type: ignore
                     entity_name_clean=entity.name.replace("'", ''))
             else:
                 data[0] = """
-                    <a
-                        onclick="selectFromTable(this, '{name}', {entity_id}, '{entity_name_clean}')"
-                        href="#">{entity_name}</a>
+                    <a onclick="selectFromTable(this, '{name}', {entity_id},
+                        '{entity_name_clean}')" href="#">{entity_name}</a>
                     """.format(
                     name=field.id,
                     entity_id=entity.id,

@@ -9,6 +9,7 @@ from werkzeug.utils import redirect, secure_filename
 from werkzeug.wrappers import Response
 
 from openatlas import app, logger
+from openatlas.database.connect import Transaction
 from openatlas.forms.form import build_form
 from openatlas.models.entity import Entity
 from openatlas.models.gis import Gis, InvalidGeomException
@@ -17,10 +18,10 @@ from openatlas.models.node import Node
 from openatlas.models.overlay import Overlay
 from openatlas.models.place import get_structure
 from openatlas.models.reference_system import ReferenceSystem
-from openatlas.util.display import link
+from openatlas.util.display import get_base_table_data, link
 from openatlas.util.util import is_authorized, required_group, was_modified
 
-if TYPE_CHECKING:  # pragma: no cover - Type checking is disabled in tests
+if TYPE_CHECKING:  # pragma: no cover
     from openatlas.models.entity import Entity
 
 
@@ -73,14 +74,17 @@ def add_crumbs(view_name: str,
                origin: Union[Entity, None],
                structure: Optional[Dict[str, Any]],
                insert_: Optional[bool] = False) -> List[Any]:
-    crumbs = [[
-        origin.class_.label if origin else _(view_name.replace('_', ' ')),
-        url_for('index', view=origin.class_.view if origin else view_name)],
+    label = origin.class_.name if origin else view_name
+    if label in g.class_view_mapping:
+        label = g.class_view_mapping[label]
+    label = _(label.replace('_', ' '))
+    crumbs = [
+        [label, url_for('index', view=origin.class_.view if origin else view_name)],
         link(origin)]
     if structure and (not origin or not origin.class_.name == 'artifact'):
         crumbs = [
             [_('place'), url_for('index', view='place')],
-            structure['place'] if origin.class_.name != 'place' else '',
+            structure['place'] if origin and origin.class_.name != 'place' else '',
             structure['feature'],
             structure['stratigraphic_unit'],
             link(origin)]
@@ -120,9 +124,16 @@ def update(id_: int) -> Union[str, Response]:
         location = entity.get_linked_entity_safe('P53', nodes=True)
         gis_data = Gis.get_all([entity], structure)
         overlays = Overlay.get_by_object(entity)
-
+        entity.image_id = entity.get_profile_image_id()
+        if not entity.image_id:
+            for link_ in entity.get_links('P67', inverse=True):
+                domain = link_.domain
+                if domain.class_.view == 'file':  # pragma: no cover
+                    data = get_base_table_data(domain)
+                    if data[3] in app.config['DISPLAY_FILE_EXTENSIONS']:
+                        entity.image_id = domain.id
+                        break
     form = build_form(entity.class_.name, entity, location=location)
-
     if entity.class_.view == 'event':
         form.event_id.data = entity.id
     elif isinstance(entity, ReferenceSystem) and entity.system:
@@ -245,7 +256,7 @@ def save(form: FlaskForm,
          entity: Optional[Entity] = None,
          class_: Optional[str] = None,
          origin: Optional[Entity] = None) -> Union[str, Response]:
-    g.cursor.execute('BEGIN')
+    Transaction.begin()
     action = 'update'
     try:
         if not entity:
@@ -267,10 +278,10 @@ def save(form: FlaskForm,
         update_links(entity, form, action, origin)
         url = link_and_get_redirect_url(form, entity, class_, origin)
         logger.log_user(entity.id, action)
-        g.cursor.execute('COMMIT')
+        Transaction.commit()
         flash(_('entity created') if action == 'insert' else _('info update'), 'info')
     except InvalidGeomException as e:  # pragma: no cover
-        g.cursor.execute('ROLLBACK')
+        Transaction.rollback()
         logger.log('error', 'database', 'transaction failed because of invalid geom', e)
         flash(_('Invalid geom entered'), 'error')
         if action == 'update' and entity:
@@ -278,7 +289,7 @@ def save(form: FlaskForm,
         else:
             url = url_for('index', view=g.classes[class_].view)
     except Exception as e:  # pragma: no cover
-        g.cursor.execute('ROLLBACK')
+        Transaction.rollback()
         logger.log('error', 'database', 'transaction failed', e)
         flash(_('error transaction'), 'error')
         if action == 'update' and entity:

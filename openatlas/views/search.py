@@ -1,29 +1,32 @@
 from flask import g, render_template, request
 from flask_babel import lazy_gettext as _
 from flask_wtf import FlaskForm
-from wtforms import (BooleanField, IntegerField, SelectMultipleField, StringField, SubmitField,
-                     widgets)
+from wtforms import (
+    BooleanField, IntegerField, SelectMultipleField, StringField, SubmitField, widgets)
 from wtforms.validators import InputRequired, NoneOf, NumberRange, Optional
 
 from openatlas import app
 from openatlas.models.date import Date
 from openatlas.models.entity import Entity
-from openatlas.util.display import link, uc_first
+from openatlas.models.search import search
+from openatlas.util.display import link
 from openatlas.util.table import Table
 from openatlas.util.util import required_group
 
 
 class SearchForm(FlaskForm):  # type: ignore
-    term = StringField(_('search'),
-                       [InputRequired()],
-                       render_kw={'placeholder': _('search term'), 'autofocus': True})
+    term = StringField(
+        _('search'),
+        [InputRequired()],
+        render_kw={'placeholder': _('search term'), 'autofocus': True})
     own = BooleanField(_('Only entities edited by me'))
     desc = BooleanField(_('Also search in description'))
-    classes = SelectMultipleField(_('classes'),
-                                  [InputRequired()],
-                                  choices=(),
-                                  option_widget=widgets.CheckboxInput(),
-                                  widget=widgets.ListWidget(prefix_label=False))
+    classes = SelectMultipleField(
+        _('classes'),
+        [InputRequired()],
+        choices=(),
+        option_widget=widgets.CheckboxInput(),
+        widget=widgets.ListWidget(prefix_label=False))
     search = SubmitField(_('search'))
 
     # Date fields
@@ -40,13 +43,15 @@ class SearchForm(FlaskForm):  # type: ignore
 
     def validate(self) -> bool:
         valid = FlaskForm.validate(self)
-        from_date = Date.form_to_datetime64(self.begin_year.data,
-                                            self.begin_month.data,
-                                            self.begin_day.data)
-        to_date = Date.form_to_datetime64(self.end_year.data,
-                                          self.end_month.data,
-                                          self.end_day.data,
-                                          True)
+        from_date = Date.form_to_datetime64(
+            self.begin_year.data,
+            self.begin_month.data,
+            self.begin_day.data)
+        to_date = Date.form_to_datetime64(
+            self.end_year.data,
+            self.end_month.data,
+            self.end_day.data,
+            True)
         if from_date and to_date and from_date > to_date:
             self.begin_year.errors.append(_('Begin dates cannot start after end dates.'))
             valid = False
@@ -68,19 +73,21 @@ def search_index() -> str:
         table = build_search_table(form)
     elif form.validate_on_submit():
         table = build_search_table(form)
-    return render_template('search/index.html',
-                           form=form,
-                           table=table,
-                           title=_('search'),
-                           crumbs=[_('search')])
+    return render_template(
+        'search/index.html',
+        form=form,
+        table=table,
+        title=_('search'),
+        crumbs=[_('search')])
 
 
 def build_search_table(form: FlaskForm) -> Table:
     table = Table(['name', 'class', 'first', 'last', 'description'])
-    for entity in Entity.search(form):
-        table.rows.append([link(entity),
-                           g.classes[entity.class_.name].label,
-                           entity.first,
-                           entity.last,
-                           entity.description])
+    for entity in search(form):
+        table.rows.append([
+            link(entity),
+            g.classes[entity.class_.name].label,
+            entity.first,
+            entity.last,
+            entity.description])
     return table

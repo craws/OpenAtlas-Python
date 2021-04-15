@@ -7,6 +7,7 @@ from werkzeug.utils import redirect
 from werkzeug.wrappers import Response
 
 from openatlas import app, logger
+from openatlas.database.connect import Transaction
 from openatlas.forms.form import build_form
 from openatlas.models.entity import Entity
 from openatlas.models.node import Node
@@ -82,7 +83,7 @@ def hierarchy_remove_form(id_: int, form_id: int) -> Response:
     if Node.get_form_count(root, form_id):
         abort(403)  # pragma: no cover
     try:
-        Node.remove_form_from_hierarchy(root, form_id)
+        Node.remove_form_from_hierarchy(form_id, root.id)
         flash(_('info update'), 'info')
     except Exception as e:  # pragma: no cover
         logger.log('error', 'database', 'remove form from hierarchy failed', e)
@@ -104,7 +105,7 @@ def hierarchy_delete(id_: int) -> Response:
 def save(form: FlaskForm,
          node: Optional[Node] = None,
          param: Optional[str] = None) -> Optional[Node]:
-    g.cursor.execute('BEGIN')
+    Transaction.begin()
     try:
         if node:
             Node.update_hierarchy(node, form)
@@ -112,9 +113,9 @@ def save(form: FlaskForm,
             node = Entity.insert('type', sanitize(form.name.data))
             Node.insert_hierarchy(node, form, value_type=True if param == 'value' else False)
         node.update(form)
-        g.cursor.execute('COMMIT')
+        Transaction.commit()
     except Exception as e:  # pragma: no cover
-        g.cursor.execute('ROLLBACK')
+        Transaction.rollback()
         logger.log('error', 'database', 'transaction failed', e)
         flash(_('error transaction'), 'error')
         abort(418)

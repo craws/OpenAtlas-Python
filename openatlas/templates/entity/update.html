@@ -16,6 +16,9 @@
             <div class="col-4">
                 <div id='map-info-display' style="float:left;">
                     {{ form|display_form(manual_page='entity/' + entity.class_.view) }}
+                    <div>
+                        {{ entity|display_profile_image }}
+                    </div>
                 </div>
             </div>
             <div class="col-8">

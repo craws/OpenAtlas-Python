@@ -1,6 +1,5 @@
 from typing import Tuple, Union
 
-# from flasgger import swag_from
 from flask import Response, jsonify
 from flask_restful import Resource, marshal
 
@@ -20,12 +19,13 @@ class GetQuery(Resource):  # type: ignore
     @api_access()  # type: ignore
     # @swag_from("../swagger/query.yml", endpoint="query")
     def get(self) -> Union[Tuple[Resource, int], Response]:
-        entities = []
         parser = query_parser.parse_args()
-        if not parser['entities'] and not parser['codes'] \
-                and not parser['classes'] and not parser['system_classes']:
-            raise QueryEmptyError  # pragma: no cover
-        template = GeoJson.pagination(parser['show'])
+        if not parser['entities'] \
+                and not parser['codes'] \
+                and not parser['classes'] \
+                and not parser['system_classes']:
+            raise QueryEmptyError
+        entities = []
         if parser['entities']:
             for entity in parser['entities']:
                 entities.append(GeoJsonEntity.get_entity_by_id(entity))
@@ -35,13 +35,15 @@ class GetQuery(Resource):  # type: ignore
         if parser['system_classes']:
             for system_class in parser['system_classes']:
                 entities.extend(GetBySystemClass.get_entities_by_system_class(
-                    system_class=system_class, parser=parser))
+                    system_class=system_class,
+                    parser=parser))
         if parser['classes']:
             for class_ in parser['classes']:
                 entities.extend(GetByClass.get_entities_by_class(class_code=class_, parser=parser))
         output = Pagination.pagination(entities=entities, parser=parser)
         if parser['count']:
             return jsonify(output['pagination']['entities'])
+        template = GeoJson.pagination(parser['show'])
         if parser['download']:
             return Download.download(data=output, template=template, name='query')
         return marshal(output, template), 200

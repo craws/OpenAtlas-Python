@@ -3,7 +3,7 @@ from pathlib import Path
 
 from openatlas import app
 
-VERSION = '6.1.0'
+VERSION = '6.2.0'
 DEMO_MODE = False  # If in demo mode some options are disabled and the login form is pre filled
 IS_UNIT_TEST = False
 
@@ -22,9 +22,9 @@ SECRET_KEY = 'CHANGE ME'
 DISPLAY_FILE_EXTENSIONS = ['.bmp', '.gif', '.ico', '.jpeg', '.jpg', '.png', '.svg']
 
 # Paths are implemented operating system independent using pathlib.
-# If you want to override them (in instance/production.py) either use them like here
+# To override them (in instance/production.py) either use them like here
 # or use absolute paths like e.g. pathlib.Path('/some/location/somewhere')
-TMP_DIR = Path('/tmp')  # e.g. for processing import/export files
+TMP_DIR = Path('/tmp')  # used e.g. for processing import and export files
 EXPORT_DIR = Path(app.root_path) / 'export'
 UPLOAD_DIR = Path(app.root_path) / 'uploads'
 
@@ -32,9 +32,6 @@ UPLOAD_DIR = Path(app.root_path) / 'uploads'
 SESSION_COOKIE_SECURE = False  # Should be set to True in production.py if using HTTPS only
 REMEMBER_COOKIE_SECURE = True
 SESSION_COOKIE_SAMESITE = 'Lax'
-
-# Modules
-MODULES = ['map_overlay', 'notes', 'sub_units']
 
 # API
 API_SCHEMA = 'https://raw.githubusercontent.com/LinkedPasts/linked-places/master/linkedplaces-context-v1.1.jsonld'
@@ -47,7 +44,6 @@ TABLE_ROWS = {10: '10', 25: '25', 50: '50', 100: '100'}
 # Minimum required characters for table filters
 MIN_CHARS_JSTREE_SEARCH = 1
 
-# Log levels
 LOG_LEVELS = {
     0: 'emergency',
     1: 'alert',
@@ -63,8 +59,5 @@ CSS = {
         'primary': 'btn btn-outline-primary btn-sm',
         'secondary': 'btn btn-secondary btn-xsm'}}
 
-PROPERTY_TYPES = ['Actor actor relation', 'Actor function', 'Involvement']  # Needed for type moves
-EXTERNAL_REFERENCES_FORMS = [
-    'acquisition', 'activity', 'artifact',  'feature',  'find',  'group', 'human_remains',  'move',
-    'person',  'place',  'type']
-
+# Property types work differently than other types, e.g. they have no move functionality
+PROPERTY_TYPES = ['Actor actor relation', 'Actor function', 'Involvement']

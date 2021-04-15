@@ -8,10 +8,9 @@ class ClassMappingTemplate:
 
     @staticmethod
     def class_mapping_template() -> Dict[str, Type[String]]:
-        overview = {
+        return {
             'systemClass': fields.String,
             'crmClass': fields.String,
             'view': fields.String,
             'icon': fields.String,
             'en': fields.String}
-        return overview

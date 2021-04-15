@@ -58,11 +58,15 @@
                                                 {% endif %}
                                                 {% if node.forms %}
                                                     <p style="margin-top:0;">
-                                                        <strong>{{ _('forms')|uc_first }}</strong>:
+                                                        <strong>{{ _('classes')|uc_first }}</strong>:
                                                         {% for form in node.forms.values() %}
                                                             {{ form.label }}{{ "," if not loop.last }}
                                                         {% endfor %}
                                                     </p>
+                                                {% endif %}
+                                                {% if node.forms and node.name not in config['PROPERTY_TYPES'] %}
+                                                    {{ _('untyped entities')|uc_first }}:
+                                                    <a href="{{ url_for('show_untyped_entities', id_=node.id) }}">{{ _('show') }}</a>
                                                 {% endif %}
                                                 {% if node.description %}
                                                     <div class="description">

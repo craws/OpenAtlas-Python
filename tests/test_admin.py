@@ -33,9 +33,23 @@ class ContentTests(TestBaseCase):
             assert b'Login' not in rv.data
 
     def test_links(self) -> None:
+        from openatlas.database.entity import Entity
+        from openatlas.database.link import Link
         with app.app_context():  # type: ignore
-            rv = self.app.get(url_for('admin_check_links'))
-            assert b'Invalid linked entity' in rv.data
+            with app.test_request_context():
+                app.preprocess_request()  # type: ignore
+                id_ = Entity.insert({
+                    'name': 'Invalid linked entity',
+                    'system_class': 'artifact',
+                    'code': 'E13', 'description': ''})
+                Link.insert({
+                    'property_code': 'P86',
+                    'domain_id': id_,
+                    'range_id': id_,
+                    'description': '',
+                    'type_id': None})
+                rv = self.app.get(url_for('admin_check_links'))
+                assert b'Invalid linked entity' in rv.data
 
     def test_dates(self) -> None:
         with app.app_context():  # type: ignore

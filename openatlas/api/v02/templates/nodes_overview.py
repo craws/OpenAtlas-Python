@@ -12,7 +12,5 @@ class NodesOverviewTemplate:
             'standard': fields.Raw,
             'places': fields.Raw,
             'custom': fields.Raw,
-            'value': fields.Raw
-        }
-        node = {"types": fields.List(fields.Nested(categories))}
-        return node
+            'value': fields.Raw}
+        return {"types": fields.List(fields.Nested(categories))}

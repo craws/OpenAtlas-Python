@@ -1,24 +1,25 @@
 from __future__ import annotations  # Needed for Python 4.0 type annotations
 
-from dataclasses import dataclass
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from flask import g, session
 
 import openatlas
 from openatlas import app
+from openatlas.database.model import Model as Db
 
 
-@dataclass
 class CidocClass:
-    _name: str
-    comment: str
-    code: str
-    id: int
-    i18n: Dict[str, str]
-    sub: List[CidocClass]
-    super: List[CidocClass]
-    count: int
+
+    def __init__(self, data: Dict[str, Any]) -> None:
+        self._name = data['name']
+        self.code = data['code']
+        self.id = data['id']
+        self.comment = data['comment']
+        self.count = data['count']
+        self.i18n: Dict[str, str] = {}
+        self.sub: List[CidocClass] = []
+        self.super: List[CidocClass] = []
 
     @property
     def name(self) -> str:
@@ -35,45 +36,30 @@ class CidocClass:
 
     @staticmethod
     def get_all() -> Dict[str, CidocClass]:
-        g.execute("""
-            SELECT c.id, c.code, c.name, comment, COUNT(e.id) AS count
-            FROM model.class c
-            LEFT JOIN model.entity e ON c.code = e.class_code
-            GROUP BY (c.id, c.name, c.comment);""")
-        classes = {row.code: CidocClass(
-            _name=row.name,
-            code=row.code,
-            id=row.id,
-            comment=row.comment,
-            count=row.count,
-            i18n={}, sub=[], super=[]) for row in g.cursor.fetchall()}
-        g.execute("SELECT super_code, sub_code FROM model.class_inheritance;")
-        for row in g.cursor.fetchall():
-            classes[row.super_code].sub.append(row.sub_code)
-            classes[row.sub_code].super.append(row.super_code)
-        sql = """
-            SELECT class_code, language_code, text FROM model.class_i18n
-            WHERE language_code IN %(language_codes)s;"""
-        g.execute(sql, {'language_codes': tuple(app.config['LANGUAGES'].keys())})
-        for row in g.cursor.fetchall():
-            classes[row.class_code].i18n[row.language_code] = row.text
+        classes = {row['code']: CidocClass(row) for row in Db.get_classes()}
+        for row in Db.get_class_hierarchy():
+            classes[row['super_code']].sub.append(row['sub_code'])
+            classes[row['sub_code']].super.append(row['super_code'])
+        for row in Db.get_class_translations(app.config['LANGUAGES'].keys()):
+            classes[row['class_code']].i18n[row['language_code']] = row['text']
         return classes
 
 
-@dataclass
 class CidocProperty:
-    _name: str
-    _name_inverse: str
-    comment: str
-    code: str
-    id: int
-    i18n: Dict[str, str]
-    i18n_inverse: Dict[str, str]
-    sub: List[int]
-    super: List[int]
-    domain_class_code: str
-    range_class_code: str
-    count: int
+
+    def __init__(self, data: Dict[str, Any]) -> None:
+        self.id = data['id']
+        self._name = data['name']
+        self._name_inverse = data['name_inverse']
+        self.code = data['code']
+        self.comment = data['comment'],
+        self.domain_class_code = data['domain_class_code']
+        self.range_class_code = data['range_class_code']
+        self.count = data['count']
+        self.sub: List[int] = []
+        self.super: List[int] = []
+        self.i18n: Dict[str, str] = {}
+        self.i18n_inverse: Dict[str, str] = {}
 
     @property
     def name(self) -> str:
@@ -111,33 +97,12 @@ class CidocProperty:
 
     @staticmethod
     def get_all() -> Dict[str, CidocProperty]:
-        sql = """
-            SELECT p.id, p.code, p.comment, p.domain_class_code, p.range_class_code, p.name,
-                p.name_inverse, COUNT(l.id) AS count
-            FROM model.property p
-            LEFT JOIN model.link l ON p.code = l.property_code
-            GROUP BY (p.id, p.code, p.comment, p.domain_class_code, p.range_class_code, p.name,
-                p.name_inverse);"""
-        g.execute(sql)
-        properties = {row.code: CidocProperty(id=row.id,
-                                              _name=row.name,
-                                              _name_inverse=row.name_inverse,
-                                              code=row.code,
-                                              comment=row.comment,
-                                              domain_class_code=row.domain_class_code,
-                                              range_class_code=row.range_class_code,
-                                              count=row.count,
-                                              sub=[], super=[], i18n={}, i18n_inverse={}
-                                              ) for row in g.cursor.fetchall()}
-        g.execute('SELECT super_code, sub_code FROM model.property_inheritance;')
-        for row in g.cursor.fetchall():
-            properties[row.super_code].sub.append(row.sub_code)
-            properties[row.sub_code].super.append(row.super_code)
-        sql = """
-            SELECT property_code, language_code, text, text_inverse FROM model.property_i18n
-            WHERE language_code IN %(language_codes)s;"""
-        g.execute(sql, {'language_codes': tuple(app.config['LANGUAGES'].keys())})
-        for row in g.cursor.fetchall():
-            properties[row.property_code].i18n[row.language_code] = row.text
-            properties[row.property_code].i18n_inverse[row.language_code] = row.text_inverse
+        properties = {row['code']: CidocProperty(row) for row in Db.get_properties()}
+        for row in Db.get_property_hierarchy():
+            properties[row['super_code']].sub.append(row['sub_code'])
+            properties[row['sub_code']].super.append(row['super_code'])
+        for row in Db.get_property_translations(app.config['LANGUAGES'].keys()):
+            properties[row['property_code']].i18n[row['language_code']] = row['text']
+            properties[row['property_code']].i18n_inverse[
+                row['language_code']] = row['text_inverse']
         return properties

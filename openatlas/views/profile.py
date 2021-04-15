@@ -2,7 +2,7 @@ import importlib
 from typing import Union
 
 import bcrypt
-from flask import flash, g, render_template, session, url_for
+from flask import flash, render_template, session, url_for
 from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
 from flask_wtf import FlaskForm
@@ -13,6 +13,7 @@ from wtforms import BooleanField, PasswordField, SubmitField
 from wtforms.validators import InputRequired
 
 from openatlas import app, logger
+from openatlas.database.connect import Transaction
 from openatlas.forms.setting import DisplayForm, ModulesForm, ProfileForm
 from openatlas.forms.util import get_form_settings, set_form_settings
 from openatlas.util.display import uc_first
@@ -78,15 +79,15 @@ def profile_settings(category: str) -> Union[str, Response]:
                 current_user.email = field.data
             else:
                 current_user.settings[field.name] = field.data
-        g.cursor.execute('BEGIN')
+        Transaction.begin()
         try:
             current_user.update()
             current_user.update_settings(form)
-            g.cursor.execute('COMMIT')
+            Transaction.commit()
             session['language'] = current_user.settings['language']
             flash(_('info update'), 'info')
         except Exception as e:  # pragma: no cover
-            g.cursor.execute('ROLLBACK')
+            Transaction.rollback()
             logger.log('error', 'database', 'transaction failed', e)
             flash(_('error transaction'), 'error')
         return redirect(url_for('profile_index') + '#tab-' + category)

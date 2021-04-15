@@ -53,7 +53,7 @@ class TestBaseCase(unittest.TestCase):
 def insert_entity(name: str,
                   class_: str,
                   origin: Optional[Entity] = None,
-                  description: Optional[str] = None) -> Optional[Entity]:
+                  description: Optional[str] = None) -> Entity:
     entity = Entity.insert(class_, name, description)
     if class_ in ['place', 'feature', 'stratigraphic_unit', 'find', 'artifact']:
         location = Entity.insert('object_location', 'Location of ' + name)

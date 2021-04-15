@@ -6,10 +6,12 @@ from werkzeug.utils import redirect
 from werkzeug.wrappers import Response
 
 from openatlas import app
+from openatlas.database.connect import Transaction
 from openatlas.forms.form import build_move_form
 from openatlas.models.entity import Entity
 from openatlas.models.node import Node
-from openatlas.util.display import (tree_select)
+from openatlas.util.display import link, tree_select
+from openatlas.util.table import Table
 from openatlas.util.util import required_group
 
 
@@ -65,9 +67,9 @@ def node_move_entities(id_: int) -> Union[str, Response]:
         abort(403)
     form = build_move_form(node)
     if form.validate_on_submit():
-        g.cursor.execute('BEGIN')
+        Transaction.begin()
         Node.move_entities(node, getattr(form, str(root.id)).data, form.checkbox_values.data)
-        g.cursor.execute('COMMIT')
+        Transaction.commit()
         flash(_('Entities were updated'), 'success')
         return redirect(url_for('node_index') + tab_hash + str(root.id))
     getattr(form, str(root.id)).data = node.id
@@ -78,3 +80,22 @@ def node_move_entities(id_: int) -> Union[str, Response]:
         form=form,
         title=_('types'),
         crumbs=[[_('types'), url_for('node_index')], root, node, _('move entities')])
+
+
+@app.route('/types/untyped/<int:id_>')
+@required_group('editor')
+def show_untyped_entities(id_: int) -> str:
+    hierarchy = g.nodes[id_]
+    table = Table(['name', 'class', 'first', 'last', 'description'])
+    for entity in Node.get_untyped(hierarchy.id):
+        table.rows.append([
+            link(entity),
+            entity.class_.label,
+            entity.first,
+            entity.last,
+            entity.description])
+    return render_template(
+        'table.html',
+        entity=hierarchy,
+        table=table,
+        crumbs=[[_('types'), url_for('node_index')], link(hierarchy), _('untyped entities')])

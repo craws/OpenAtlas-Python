@@ -1,6 +1,5 @@
 from typing import Tuple, Union
 
-# from flasgger import swag_from
 from flask import Response
 from flask_restful import Resource, marshal
 
@@ -19,8 +18,9 @@ class GetContent(Resource):  # type: ignore
         content = {
             'intro': Content.get_translation('intro_for_frontend', parser['lang']),
             'contact': Content.get_translation('contact_for_frontend', parser['lang']),
-            'legal-notice': Content.get_translation('legal_notice_for_frontend', parser['lang'])}
+            'legal-notice': Content.get_translation('legal_notice_for_frontend', parser['lang']),
+            'site-name': Content.get_translation('site_name_for_frontend', parser['lang'])}
         template = ContentTemplate.content_template()
         if parser['download']:
             return Download.download(data=content, template=template, name='content')
-        return marshal(content, ContentTemplate.content_template()), 200
+        return marshal(content, template), 200
