@@ -458,10 +458,11 @@ def entity_add_source(id_: int) -> Union[str, Response]:
 
 
 @app.route('/entity/add/reference/<int:id_>', methods=['POST', 'GET'])
+@app.route('/entity/add/reference/<int:id_>/<subunit>', methods=['POST', 'GET'])
 @required_group('contributor')
-def entity_add_reference(id_: int) -> Union[str, Response]:
+def entity_add_reference(id_: int, subunit: bool = False) -> Union[str, Response]:
     entity = Entity.get_by_id(id_)
-    form = AddReferenceForm()
+    form = AddReferenceForm() if subunit else AddReferenceForm()
     if form.validate_on_submit():
         entity.link_string('P67', form.reference.data, description=form.page.data, inverse=True)
         return redirect(url_for('entity_view', id_=id_) + '#tab-reference')

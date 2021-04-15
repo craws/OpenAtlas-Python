@@ -222,7 +222,6 @@ class Entity:
         return ''
 
     def get_name_directed(self, inverse: bool = False) -> str:
-        """ Returns name part of a directed type e.g. actor actor relation: parent of (child of)"""
         from openatlas.util.display import sanitize
         name_parts = self.name.split(' (')
         if inverse and len(name_parts) > 1:  # pragma: no cover
@@ -347,5 +346,5 @@ class Entity:
         Db.set_profile_image(id_, origin_id)
 
     @staticmethod
-    def get_circular() -> List[Entity]:  # Get entities that are linked to itself.
+    def get_circular() -> List[Entity]:
         return [Entity.get_by_id(row['domain_id']) for row in Db.get_circular()]

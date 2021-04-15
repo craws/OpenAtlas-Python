@@ -168,7 +168,8 @@ class TableSelect(HiddenInput):  # type: ignore
                     <div
                         class="btn btn-outline-primary btn-xsm"
                         style="position: absolute; top: -22px;"
-                        onclick="selectFromTable(this,'{name}', {entity_id}, '{entity_name_clean}')">
+                        onclick=
+                            "selectFromTable(this,'{name}', {entity_id}, '{entity_name_clean}')">
                             {label}
                     </div>
                 </div>
@@ -227,16 +228,17 @@ class TableSelect(HiddenInput):  # type: ignore
                     </div>
                 </div>
             </div>
-            """.format(name=field.id,
-                       title=uc_first(_(field.id.replace('_', ' '))),
-                       button_class=app.config['CSS']['button']['secondary'],
-                       change_label=uc_first(_('change')),
-                       clear_label=uc_first(_('clear')),
-                       close_label=uc_first(_('close')),
-                       table=table.display(field.id),
-                       selection=selection,
-                       clear_style='' if selection else ' style="display: none;" ',
-                       required=' required' if field.flags.required else '')
+            """.format(
+            name=field.id,
+            title=uc_first(_(field.id.replace('_', ' '))),
+            button_class=app.config['CSS']['button']['secondary'],
+            change_label=uc_first(_('change')),
+            clear_label=uc_first(_('clear')),
+            close_label=uc_first(_('close')),
+            table=table.display(field.id),
+            selection=selection,
+            clear_style='' if selection else ' style="display: none;" ',
+            required=' required' if field.flags.required else '')
         return super(TableSelect, self).__call__(field, **kwargs) + html
 
 

@@ -152,6 +152,10 @@ class Tab:
                 url_for('insert', class_=name, origin_id=id_)))
         elif name == 'reference':
             buttons = [button('link', url_for('entity_add_reference', id_=id_))]
+            if origin.class_.name in ['feature', 'stratigraphic_unit', 'find', 'human_remains']:
+                buttons.append(button(
+                    _('link from supers'),
+                    url_for('entity_add_reference', id_=id_, subunit=True)))
             for item in g.view_class_mapping['reference']:
                 buttons.append(button(
                     g.classes[item].label,
