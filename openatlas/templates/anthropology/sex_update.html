@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
 {% block content %}
     <h1>{{ _('sex estimation')|uc_first }} - {{ entity.name }}</h1>
+    {{ form|display_form() }}
 {% endblock %}
