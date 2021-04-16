@@ -4,12 +4,12 @@ from flask import render_template, url_for
 from flask_babel import lazy_gettext as _
 from flask_wtf import FlaskForm
 from werkzeug.wrappers import Response
-from wtforms import SubmitField
+from wtforms import SubmitField, SelectField
 
 from openatlas import app
-from openatlas.forms.field import TreeField
 from openatlas.models.entity import Entity
 from openatlas.models.node import Node
+from openatlas.util.display import uc_first
 from openatlas.util.util import required_group
 
 
@@ -44,8 +44,17 @@ def anthropology_sex_update(id_: int) -> Union[str, Response]:
         pass
 
     node = Node.get_hierarchy('Sex estimation')
-    setattr(Form, str(node.id), TreeField('Glabella'))
-    setattr(Form, 'save', SubmitField(_('save me')))
+    options = [
+        ('', ''),
+        ('1', 'Female'),
+        ('2', 'Female?'),
+        ('3', 'Indifferent'),
+        ('4', 'Male?'),
+        ('5', 'Male'),
+        ('6', 'Not preserved')]
+    for item in ['glabella', 'arcus_superciliaris', 'tuber_frontalis_and_parietalis']:
+        setattr(Form, item, SelectField(uc_first(item.replace('_', ' ')), choices=options))
+    setattr(Form, 'save', SubmitField(_('save')))
     form = Form()
 
     entity = Entity.get_by_id(id_)
