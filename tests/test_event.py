@@ -13,10 +13,9 @@ class EventTest(TestBaseCase):
         with app.app_context():  # type: ignore
             # Create entities for event
             place_name = 'Lewis and Clark'
-            rv = self.app.post(url_for('insert', class_='place'),
-                               data={'name': place_name,
-                                     self.precision_geonames: '',
-                                     self.precision_wikidata: ''})
+            rv = self.app.post(
+                url_for('insert', class_='place'),
+                data={'name': place_name, self.precision_geonames: '', self.precision_wikidata: ''})
             residence_id = rv.location.split('/')[-1]
             actor_name = 'Captain Miller'
             with app.test_request_context():

@@ -39,11 +39,11 @@ Admins and manager can add, updated and delete external reference systems.
 * **Example ID** - an example id to show the desired format e.g. Q123 for Wikidata
 * **External reference match** - default precision selected in forms
 * **Description** - a short description, shown in forms when mouse over the **i** icon
-* **Forms** - a checkbox list of available forms, for GeoNames only place is available
+* **Classes** - a checkbox list of available classes, for GeoNames only place is available
 
-Forms can be removed from a system by clicking on the tab with the corresponding form name and
-clicking the **Remove** button. This button is only available if there are no entities linked to the
-form.
+Classes can be removed from a system by clicking on the tab with the corresponding class name and
+clicking the **Remove** button. This button is only available if there are no entities of this class
+linked to the reference system.
 
-Reference systems can be deleted only if no forms are attached to it. Wikidata and GeoNames are
-integrated and cannot be deleted but if desired they can be disabled by removing the forms.
+Reference systems can be deleted only if no classes are attached to it. Wikidata and GeoNames are
+integrated and cannot be deleted but if desired they can be disabled by removing the classes.

@@ -1,0 +1,6 @@
+<input
+    type="checkbox"
+    id="{{ entity.id }}"
+    {% if field.data and entity.id in field.data %} checked {% endif %}
+    value="{{ entity.name }}"
+    class="multi-table-select">

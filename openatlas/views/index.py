@@ -59,8 +59,7 @@ def overview() -> str:
                 note['text'],
                 '<a href="{url}">{label}</a>'.format(
                     url=url_for('note_view', id_=note['id']),
-                    label=uc_first(_('view')))
-            ])
+                    label=uc_first(_('view')))])
         for name, count in Entity.get_overview_counts().items():
             if count:
                 url = url_for('index', view=g.class_view_mapping[name])

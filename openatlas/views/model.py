@@ -3,8 +3,8 @@ from typing import Any, Dict, Optional
 from flask import g, render_template, url_for
 from flask_babel import format_number, lazy_gettext as _
 from flask_wtf import FlaskForm
-from wtforms import (BooleanField, HiddenField, IntegerField, SelectMultipleField, StringField,
-                     SubmitField, widgets)
+from wtforms import (
+    BooleanField, HiddenField, IntegerField, SelectMultipleField, StringField, SubmitField, widgets)
 from wtforms.validators import InputRequired
 
 from openatlas import app

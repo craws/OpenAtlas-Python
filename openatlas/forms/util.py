@@ -22,10 +22,11 @@ def get_link_type(form: Any) -> Optional_Type[Entity]:
 
 def get_form_settings(form: Any, profile: bool = False) -> Dict[str, str]:
     if isinstance(form, ProfileForm):
-        return {_('name'): current_user.real_name,
-                _('email'): current_user.email,
-                _('show email'): _('on') if current_user.settings['show_email'] else _('off'),
-                _('newsletter'): _('on') if current_user.settings['newsletter'] else _('off')}
+        return {
+            _('name'): current_user.real_name,
+            _('email'): current_user.email,
+            _('show email'): _('on') if current_user.settings['show_email'] else _('off'),
+            _('newsletter'): _('on') if current_user.settings['newsletter'] else _('off')}
     settings = {}
     for field in form:
         if field.type in ['CSRFTokenField', 'HiddenField', 'SubmitField']:

@@ -1,0 +1,68 @@
+<span
+    id="{{ field.id }}-button"
+    class="{{ config['CSS']['button']['secondary'] }}"
+    onclick="$('#{{ field.id }}-modal').modal('show')">
+        {{ _('change')|uc_first }}
+</span>
+<div id="{{ field.id }}-selection" style="text-align:left;">
+    {{ '<br>'.join(selection)|safe }}
+</div>
+<div
+    id="{{ field.id }}-modal"
+    class="modal fade"
+    tabindex="-1"
+    role="dialog"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ root.name|uc_first }}</h5>
+                <button
+                    type="button"
+                    class="{{ config['CSS']['button']['primary'] }}"
+                    data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input
+                    class="tree-filter"
+                    id="{{ field.id }}-tree-search"
+                    placeholder="{{ _('type to search')|uc_first }}"
+                    type="text">
+                <div id="{{ field.id }}-tree" style="text-align: left!important;"></div>
+            </div>
+            <div class="modal-footer">
+                <button
+                    type="button"
+                    class="{{ config['CSS']['button']['primary'] }}"
+                    data-dismiss="modal"
+                    onclick="selectFromTreeMulti({{ field.id }})">
+                        {{ _('close')|uc_first }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $("#{{ field.id }}-tree").jstree( {
+        "core" : {"check_callback": true, "data": {{ data|safe }} },
+        "plugins": ["search", "checkbox"],
+        "checkbox": {"three_state": false},
+        "search": {
+            "case_insensitive": true,
+            "show_only_matches": true,
+            "show_only_matches_children": true
+        }
+    });
+    $("#{{ field.id }}-tree-search").keyup(function() {
+        if (this.value.length >= {{ session.settings.minimum_jstree_search }}) {
+            $("#{{ field.id }}-tree").jstree("search", $(this).val());
+        }
+        else if (this.value.length == 0) {
+            $("#{{ field.id }}-tree").jstree("search", $(this).val());
+            $("#{{ field.id }}-tree").jstree(true).show_all();
+        }
+    });
+</script>

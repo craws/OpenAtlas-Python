@@ -48,29 +48,25 @@ class Date:
 
     @staticmethod
     def get_invalid_dates() -> List['Entity']:
-        """ Search for entities with invalid date combinations, e.g. begin after end"""
         from openatlas.models.entity import Entity
         return [Entity.get_by_id(row['id'], nodes=True) for row in Db.get_invalid_dates()]
 
     @staticmethod
     def invalid_involvement_dates() -> List['Link']:
-        """ Search invalid event participation dates and return the actors
-            e.g. attending person was born after the event ended"""
         from openatlas.models.link import Link
         return [Link.get_by_id(row['id']) for row in Db.invalid_involvement_dates()]
 
     @staticmethod
     def get_invalid_link_dates() -> List['Link']:
-        """ Search for links with invalid date combinations, e.g. begin after end"""
         from openatlas.models.link import Link
         return [Link.get_by_id(row['id']) for row in Db.get_invalid_link_dates()]
 
     @staticmethod
-    def form_to_datetime64(year: Any,
-                           month: Any,
-                           day: Any,
-                           to_date: bool = False) -> Optional[numpy.datetime64]:
-        """ Converts form fields (year, month, day) to a numpy.datetime64."""
+    def form_to_datetime64(
+            year: Any,
+            month: Any,
+            day: Any,
+            to_date: bool = False) -> Optional[numpy.datetime64]:
         if not year:
             return None
         year = format(year, '03d') if year > 0 else format(year + 1, '04d')
@@ -85,10 +81,12 @@ class Date:
             return False
 
         def get_last_day_of_month(year_: int, month_: int) -> int:
-            months_days: Dict[int, int] = {1: 31, 2: 28, 3: 31, 4: 30, 5: 31, 6: 30, 7: 31, 8: 31,
-                                           9: 30, 10: 31, 11: 30, 12: 31}
-            months_days_leap: Dict[int, int] = {1: 31, 2: 29, 3: 31, 4: 30, 5: 31, 6: 30, 7: 31,
-                                                8: 31, 9: 30, 10: 31, 11: 30, 12: 31}
+            months_days: Dict[int, int] = {
+                1: 31, 2: 28, 3: 31, 4: 30, 5: 31, 6: 30, 7: 31, 8: 31, 9: 30, 10: 31, 11: 30,
+                12: 31}
+            months_days_leap: Dict[int, int] = {
+                1: 31, 2: 29, 3: 31, 4: 30, 5: 31, 6: 30, 7: 31, 8: 31, 9: 30, 10: 31, 11: 30,
+                12: 31}
             date_lookup = months_days_leap if is_leap_year(year_) else months_days
             return date_lookup[month_]
 

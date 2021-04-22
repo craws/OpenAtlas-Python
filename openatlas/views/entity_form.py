@@ -69,11 +69,12 @@ def insert(class_: str, origin_id: Optional[int] = None) -> Union[str, Response]
         crumbs=add_crumbs(view_name, class_, origin, structure, insert_=True))
 
 
-def add_crumbs(view_name: str,
-               class_: str,
-               origin: Union[Entity, None],
-               structure: Optional[Dict[str, Any]],
-               insert_: Optional[bool] = False) -> List[Any]:
+def add_crumbs(
+        view_name: str,
+        class_: str,
+        origin: Union[Entity, None],
+        structure: Optional[Dict[str, Any]],
+        insert_: Optional[bool] = False) -> List[Any]:
     label = origin.class_.name if origin else view_name
     if label in g.class_view_mapping:
         label = g.class_view_mapping[label]
@@ -180,10 +181,11 @@ def update(id_: int) -> Union[str, Response]:
             structure=structure))
 
 
-def populate_insert_form(form: FlaskForm,
-                         view_name: str,
-                         class_: str,
-                         origin: Union[Entity, Node]) -> None:
+def populate_insert_form(
+        form: FlaskForm,
+        view_name: str,
+        class_: str,
+        origin: Union[Entity, Node]) -> None:
     if view_name == 'source':
         if origin and origin.class_.name == 'artifact':
             form.artifact.data = [origin.id]
@@ -252,10 +254,11 @@ def populate_update_form(form: FlaskForm, entity: Union[Entity, Node]) -> None:
         form.artifact.data = [item.id for item in entity.get_linked_entities('P128', inverse=True)]
 
 
-def save(form: FlaskForm,
-         entity: Optional[Entity] = None,
-         class_: Optional[str] = None,
-         origin: Optional[Entity] = None) -> Union[str, Response]:
+def save(
+        form: FlaskForm,
+        entity: Optional[Entity] = None,
+        class_: Optional[str] = None,
+        origin: Optional[Entity] = None) -> Union[str, Response]:
     Transaction.begin()
     action = 'update'
     try:
@@ -301,10 +304,10 @@ def save(form: FlaskForm,
     return url
 
 
-def insert_entity(form: FlaskForm,
-                  class_: str,
-                  origin: Optional[Union[Entity, Node]] = None
-                  ) -> Union[Entity, Node, ReferenceSystem]:
+def insert_entity(
+        form: FlaskForm,
+        class_: str,
+        origin: Optional[Union[Entity, Node]] = None) -> Union[Entity, Node, ReferenceSystem]:
     if class_ == 'artifact':
         entity = Entity.insert(class_, form.name.data)
         location = Entity.insert('object_location', 'Location of ' + form.name.data)
@@ -392,10 +395,11 @@ def update_links(entity: Entity, form: FlaskForm, action: str, origin: Optional[
             entity.link(property_code, new_super)
 
 
-def link_and_get_redirect_url(form: FlaskForm,
-                              entity: Entity,
-                              class_: str,
-                              origin: Union[Entity, None] = None) -> str:
+def link_and_get_redirect_url(
+        form: FlaskForm,
+        entity: Entity,
+        class_: str,
+        origin: Union[Entity, None] = None) -> str:
     url = url_for('entity_view', id_=entity.id)
     if origin and class_ not in ('administrative_unit', 'type'):  # Can't be tested with isinstance
         url = url_for('entity_view', id_=origin.id) + '#tab-' + entity.class_.view

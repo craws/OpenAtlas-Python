@@ -102,9 +102,10 @@ def hierarchy_delete(id_: int) -> Response:
     return redirect(url_for('node_index'))
 
 
-def save(form: FlaskForm,
-         node: Optional[Node] = None,
-         param: Optional[str] = None) -> Optional[Node]:
+def save(
+        form: FlaskForm,
+        node: Optional[Node] = None,
+        param: Optional[str] = None) -> Optional[Node]:
     Transaction.begin()
     try:
         if node:

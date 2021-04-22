@@ -38,10 +38,11 @@ class Link:
         return [row['result_id'] for row in g.cursor.fetchall()]
 
     @staticmethod
-    def get_links(entity_id: int,
-                  codes: Union[str, List[str], None],
-                  inverse: bool = False) -> List[Dict[str, Any]]:
-        sql = """
+    def get_links(
+            entity_id: int,
+            codes: Union[str, List[str], None],
+            inverse: bool = False) -> List[Dict[str, Any]]:
+        sql = f"""
             SELECT l.id, l.property_code, l.domain_id, l.range_id, l.description, l.created,
                 l.modified, e.name, l.type_id,
                 COALESCE(to_char(l.begin_from, 'yyyy-mm-dd BC'), '') AS begin_from, l.begin_comment,
@@ -49,24 +50,23 @@ class Link:
                 COALESCE(to_char(l.end_from, 'yyyy-mm-dd BC'), '') AS end_from, l.end_comment,
                 COALESCE(to_char(l.end_to, 'yyyy-mm-dd BC'), '') AS end_to
             FROM model.link l
-            JOIN model.entity e ON l.{second}_id = e.id """.format(
-            second='domain' if inverse else 'range')
+            JOIN model.entity e ON l.{'domain' if inverse else 'range'}_id = e.id """
         if codes:
             codes = codes if isinstance(codes, list) else [codes]
             sql += ' AND l.property_code IN %(codes)s '
-        sql += """
-            WHERE l.{first}_id = %(entity_id)s
+        sql += f"""
+            WHERE l.{'range' if inverse else 'domain'}_id = %(entity_id)s
             GROUP BY l.id, e.name
-            ORDER BY e.name;""".format(first='range' if inverse else 'domain')
+            ORDER BY e.name;"""
         g.cursor.execute(sql, {'entity_id': entity_id, 'codes': tuple(codes) if codes else ''})
         return [dict(row) for row in g.cursor.fetchall()]
 
     @staticmethod
     def delete_by_codes(entity_id: int, codes: List[str], inverse: bool = False) -> None:
-        sql = """
+        sql = f"""
             DELETE FROM model.link
-            WHERE property_code IN %(codes)s AND {field} = %(id)s;""".format(
-                field='range_id' if inverse else 'domain_id')
+            WHERE property_code IN %(codes)s
+                AND {'range_id' if inverse else 'domain_id'} = %(id)s;"""
         g.cursor.execute(sql, {'id': entity_id, 'codes': tuple(codes)})
 
     @staticmethod

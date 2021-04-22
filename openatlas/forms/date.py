@@ -48,7 +48,6 @@ def add_date_fields(form: Any) -> None:
 
 
 def populate_dates(form: FlaskForm, item: Union['Entity', Link]) -> None:
-    """ Populates date form fields with date values of an entity or link."""
     if item.begin_from:
         form.begin_year_from.data = format_date(item.begin_from, 'year')
         form.begin_month_from.data = format_date(item.begin_from, 'month')

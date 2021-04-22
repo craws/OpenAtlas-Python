@@ -31,10 +31,8 @@ def involvement_insert(origin_id: int) -> Union[str, Response]:
         try:
             if origin.class_.view == 'event':
                 for actor in Entity.get_by_ids(ast.literal_eval(form.actor.data)):
-                    link_ = Link.get_by_id(origin.link(
-                        form.activity.data,
-                        actor,
-                        form.description.data)[0])
+                    link_ = Link.get_by_id(
+                        origin.link(form.activity.data, actor, form.description.data)[0])
                     link_.set_dates(form)
                     link_.type = get_link_type(form)
                     link_.update()
@@ -100,7 +98,8 @@ def involvement_update(id_: int, origin_id: int) -> Union[str, Response]:
         'display_form.html',
         origin=origin,
         form=form,
-        crumbs=[[_(origin.class_.view), url_for('index', view=origin.class_.view)],
-                origin,
-                event if origin_id != event.id else actor,
-                _('edit')])
+        crumbs=[
+            [_(origin.class_.view), url_for('index', view=origin.class_.view)],
+            origin,
+            event if origin_id != event.id else actor,
+            _('edit')])

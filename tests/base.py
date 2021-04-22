@@ -40,20 +40,17 @@ class TestBaseCase(unittest.TestCase):
             port=app.config['DATABASE_PORT'])
         connection.autocommit = True
         cursor = connection.cursor()
-        for file_name in ['1_structure.sql',
-                          '2_data_model.sql',
-                          '3_data_web.sql',
-                          '4_data_node.sql',
-                          'data_test.sql']:
-            with open(pathlib.Path(app.root_path).parent / 'install' / file_name,
+        for file_name in ['1_structure', '2_data_model', '3_data_web', '4_data_node', 'data_test']:
+            with open(pathlib.Path(app.root_path).parent / 'install' / (file_name + '.sql'),
                       encoding='utf8') as sqlFile:
                 cursor.execute(sqlFile.read())
 
 
-def insert_entity(name: str,
-                  class_: str,
-                  origin: Optional[Entity] = None,
-                  description: Optional[str] = None) -> Entity:
+def insert_entity(
+        name: str,
+        class_: str,
+        origin: Optional[Entity] = None,
+        description: Optional[str] = None) -> Entity:
     entity = Entity.insert(class_, name, description)
     if class_ in ['place', 'feature', 'stratigraphic_unit', 'find', 'artifact']:
         location = Entity.insert('object_location', 'Location of ' + name)

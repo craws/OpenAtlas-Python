@@ -73,12 +73,12 @@ def import_project_insert() -> Union[str, Response]:
 def import_project_view(id_: int) -> str:
     table = Table([_('name'), _('class'), _('description'), 'origin ID', _('date')])
     for entity in Entity.get_by_project_id(id_):
-        table.rows.append(
-            [link(entity),
-             entity.class_.label,
-             entity.description,
-             entity.origin_id,
-             format_date(entity.created)])
+        table.rows.append([
+            link(entity),
+            entity.class_.label,
+            entity.description,
+            entity.origin_id,
+            format_date(entity.created)])
     project = Import.get_project_by_id(id_)
     return render_template(
         'import/project_view.html',

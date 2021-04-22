@@ -6,8 +6,8 @@ from flask_login import current_user
 from flask_wtf import FlaskForm
 from werkzeug.utils import redirect
 from werkzeug.wrappers import Response
-from wtforms import (BooleanField, HiddenField, PasswordField, SelectField, StringField,
-                     SubmitField, TextAreaField)
+from wtforms import (
+    BooleanField, HiddenField, PasswordField, SelectField, StringField, SubmitField, TextAreaField)
 from wtforms.validators import Email, InputRequired
 
 from openatlas import app
@@ -169,18 +169,18 @@ def user_insert() -> Union[str, Response]:
         user_id = User.insert(form)
         flash(_('user created'), 'info')
         if session['settings']['mail'] and form.send_info.data:  # pragma: no cover
-            subject = _('Your account information for %(sitename)s',
-                        sitename=session['settings']['site_name'])
+            subject = _(
+                'Your account information for %(sitename)s',
+                sitename=session['settings']['site_name'])
             body = _('Account information for %(username)s', username=form.username.data) + ' '
             body += _('at') + ' ' + request.scheme + '://' + request.headers['Host'] + '\n\n'
             body += uc_first(_('username')) + ': ' + form.username.data + '\n'
             body += uc_first(_('password')) + ': ' + form.password.data + '\n'
+            email = form.email.data
             if send_mail(subject, body, form.email.data, False):
-                flash(_('Sent account information mail to %(email)s.',
-                        email=form.email.data), 'info')
+                flash(_('Sent account information mail to %(email)s.', email=email), 'info')
             else:
-                flash(_('Failed to send account details to %(email)s.',
-                        email=form.email.data), 'error')
+                flash(_('Failed to send account details to %(email)s.', email=email), 'error')
         if hasattr(form, 'continue_') and form.continue_.data == 'yes':
             return redirect(url_for('user_insert'))
         return redirect(url_for('user_view', id_=user_id))
@@ -192,8 +192,8 @@ def user_insert() -> Union[str, Response]:
 
 
 def get_groups() -> List[Tuple[str, str]]:
-    """ Returns groups, hardcoded because order is relevant (weakest permissions to strongest)"""
+    """Returns groups hardcoded because the order (weakest permissions to strongest) is relevant"""
     choices = [(name, name) for name in ['readonly', 'contributor', 'editor', 'manager']]
     if is_authorized('admin'):
-        choices.append(('admin', 'admin'))  # admin group is only available for admins
+        choices.append(('admin', 'admin'))
     return choices

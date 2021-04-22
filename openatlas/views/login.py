@@ -104,17 +104,20 @@ def reset_password() -> Union[str, Response]:
             body += request.headers['Host'] + '\n\n' + _('reset password link') + ':\n\n'
             body += link + '\n\n' + _('The link is valid for') + ' '
             body += str(session['settings']['reset_confirm_hours']) + ' ' + _('hours') + '.'
+            email = form.email.data
             if send_mail(subject, body, form.email.data):
-                flash(_('A password reset confirmation mail was send to %(email)s.',
-                        email=form.email.data), 'info')
+                flash(
+                    _('A password reset confirmation mail was send to %(email)s.', email=email),
+                    'info')
             else:
-                flash(_('Failed to send password reset confirmation mail to %(email)s.',
-                        email=form.email.data), 'error')
+                flash(
+                    _('Failed to send password reset confirmation mail to %(email)s.', email=email),
+                    'error')
             return redirect(url_for('login'))
-    return render_template('login/reset_password.html',
-                           form=form,
-                           crumbs=[[_('login'), url_for('login')],
-                                   _('Forgot your password?')])
+    return render_template(
+        'login/reset_password.html',
+        form=form,
+        crumbs=[[_('login'), url_for('login')], _('Forgot your password?')])
 
 
 @app.route('/reset_confirm/<code>')

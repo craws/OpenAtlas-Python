@@ -30,11 +30,8 @@ if TYPE_CHECKING:  # pragma: no cover - Type checking is disabled in tests
     from openatlas.models.reference_system import ReferenceSystem
 
 
-# Functions that return HTML code but aren't called from templates (these are in filters.py)
-
 def external_url(url: Union[str, None]) -> str:
-    return '<a target="blank_" rel="noopener noreferrer" href="{url}">{url}</a>'.format(
-        url=url) if url else ''
+    return f'<a target="blank_" rel="noopener noreferrer" href="{url}">{url}</a>' if url else ''
 
 
 def walk_tree(nodes: List[int]) -> List[Dict[str, Any]]:
@@ -111,7 +108,6 @@ def link(object_: Union[str, 'Entity', CidocClass, CidocProperty, 'Project', 'Us
 
 
 def display_delete_link(entity: Entity) -> str:
-    """ Build a link to delete an entity with a JavaScript confirmation dialog."""
     if entity.class_.name == 'source_translation':
         url = url_for('translation_delete', id_=entity.id)
     elif entity.id in g.nodes:
@@ -119,7 +115,7 @@ def display_delete_link(entity: Entity) -> str:
     else:
         url = url_for('index', view=entity.class_.view, delete_id=entity.id)
     confirm = _('Delete %(name)s?', name=entity.name.replace('\'', ''))
-    return button(_('delete'), url, onclick="return confirm('{confirm}')").format(confirm=confirm)
+    return button(_('delete'), url, onclick=f"return confirm('{confirm}')")
 
 
 def add_remove_link(data: List[Any], name: str, link_: Link, origin: Entity, tab: str) -> List[Any]:
@@ -150,15 +146,38 @@ def uc_first(string: Optional[str] = '') -> str:
 
 def add_reference_systems_to_form(form: Any) -> str:
     from openatlas.util.filters import add_row
-    html = ''
+    fields = []
     for field in form:
         if field.id.startswith('reference_system_id_'):
-            precision_field = getattr(form, field.id.replace('id_', 'precision_'))
-            class_ = field.label.text if field.label.text in ['GeoNames', 'Wikidata'] else ''
-            html += add_row(field, field.label, ' '.join([
+            fields.append(field)
+    html = ''
+    switch_class = ''
+    if len(fields) > 3:  # pragma: no cover
+        switch_class = 'reference-systems-switch'
+        html = f"""
+            <div class="table-row">
+                <div>
+                    <label>{uc_first(_('reference systems'))}</label>
+                </div>
+                <div class="table-cell reference-systems-switcher">
+                    <span
+                        id="reference-systems-switcher"
+                        class="{app.config['CSS']['button']['secondary']}">
+                            {uc_first(_('show'))}
+                    </span>
+                </div>
+            </div>"""
+    for field in fields:
+        precision_field = getattr(form, field.id.replace('id_', 'precision_'))
+        class_ = field.label.text if field.label.text in ['GeoNames', 'Wikidata'] else ''
+        html += add_row(
+            field,
+            field.label,
+            ' '.join([
                 str(field(class_=class_)),
                 str(precision_field.label),
-                str(precision_field)]))
+                str(precision_field)]),
+            row_css_class='external-reference ' + switch_class)
     return html
 
 
@@ -242,8 +261,7 @@ def add_system_data(entity: 'Entity', data: Dict[str, Any]) -> Dict[str, Any]:
             data[_('imported by')] = link(info['importer'])
             data['origin ID'] = info['origin_id']
     if 'entity_show_api' in current_user.settings and current_user.settings['entity_show_api']:
-        data_api = '<a href="{url}" target="_blank">GeoJSON</a>'.format(
-            url=url_for('entity', id_=entity.id))
+        data_api = f'<a href="{url_for("entity", id_=entity.id)}" target="_blank">GeoJSON</a>'
         data_api += '''
             <a class="btn btn-outline-primary btn-sm" href="{url}" target="_blank" title="Download">
                 <i class="fas fa-download"></i> {label}
@@ -256,7 +274,6 @@ def add_system_data(entity: 'Entity', data: Dict[str, Any]) -> Dict[str, Any]:
             </a>'''.format(
             url=url_for('entity', id_=entity.id, export='csv'),
             label=uc_first('csv'))
-
         data['API'] = data_api
     return data
 
@@ -293,13 +310,10 @@ def add_type_data(entity: 'Entity', data: Dict[str, Any]) -> Dict[str, Any]:
 
 def bookmark_toggle(entity_id: int, for_table: bool = False) -> str:
     label = uc_first(_('bookmark remove') if entity_id in current_user.bookmarks else _('bookmark'))
+    onclick = f"ajaxBookmark('{entity_id}');"
     if for_table:
-        return """<a href='#' id="bookmark{id}" onclick="ajaxBookmark('{id}');">{label}
-            </a>""".format(id=entity_id, label=label)
-    return button(
-        label,
-        id_='bookmark' + str(entity_id),
-        onclick="ajaxBookmark('" + str(entity_id) + "');")
+        return f'<a href="#" id="bookmark{entity_id}" onclick="{onclick}">{label}</a>'
+    return button(label, id_=f'bookmark{entity_id}', onclick=onclick)
 
 
 def button(
@@ -329,6 +343,7 @@ def tooltip(text: str) -> str:
 
 
 def get_entity_data(entity: 'Entity', event_links: Optional[List[Link]] = None) -> Dict[str, Any]:
+
     data: Dict[str, Union[str, List[str], None]] = {_('alias'): list(entity.aliases.values())}
 
     # Dates
@@ -436,17 +451,14 @@ def get_profile_image_table_link(
 def get_base_table_data(
         entity: 'Entity',
         file_stats: Optional[Dict[Union[int, str], Any]] = None) -> List[Any]:
-    """ Returns standard table data for an entity"""
-    if len(entity.aliases) > 0:
-        data: List[str] = ['<p>' + link(entity) + '</p>']
-    else:
-        data = [link(entity)]
-    # Aliases
-    for i, (id_, alias) in enumerate(entity.aliases.items()):
-        if i == len(entity.aliases) - 1:
-            data[0] = ''.join([data[0]] + [alias])
-        else:
-            data[0] = ''.join([data[0]] + ['<p>' + alias + '</p>'])
+    data = [link(entity)]
+    if current_user.settings['table_show_aliases'] and len(entity.aliases) > 0:
+        data = [f'<p>{link(entity)}</p>']
+        for i, (id_, alias) in enumerate(entity.aliases.items()):
+            if i == len(entity.aliases) - 1:
+                data[0] = ''.join([data[0]] + [alias])
+            else:
+                data[0] = ''.join([data[0]] + [f'<p>{alias}</p>'])
     if entity.class_.view in ['actor', 'artifact', 'event', 'reference'] or \
             entity.class_.name == 'find':
         data.append(entity.class_.label)
@@ -462,8 +474,8 @@ def get_base_table_data(
             data.append(print_file_size(entity))
             data.append(get_file_extension(entity))
     if entity.class_.view in ['actor', 'artifact', 'event', 'find', 'place']:
-        data.append(entity.first if entity.first else '')
-        data.append(entity.last if entity.last else '')
+        data.append(entity.first)
+        data.append(entity.last)
     data.append(entity.description)
     return data
 

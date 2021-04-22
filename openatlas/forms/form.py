@@ -4,18 +4,18 @@ import time
 from collections import OrderedDict
 from typing import Any, Dict, List, Optional, Union
 
-from flask import g, request
+from flask import g, render_template, request
 from flask_babel import lazy_gettext as _
 from flask_wtf import FlaskForm, widgets
-from flask_wtf.csrf import generate_csrf
-from wtforms import (BooleanField, FieldList, FileField, HiddenField, SelectField,
-                     SelectMultipleField, StringField, SubmitField, TextAreaField, widgets)
+from wtforms import (
+    BooleanField, FieldList, FileField, HiddenField, SelectField, SelectMultipleField,
+    StringField, SubmitField, TextAreaField, widgets)
 from wtforms.validators import InputRequired, Optional as OptionalValidator, URL
 
 from openatlas import app
 from openatlas.forms import date
-from openatlas.forms.field import (TableField, TableMultiField, TreeField, TreeMultiField,
-                                   ValueFloatField)
+from openatlas.forms.field import (
+    TableField, TableMultiField, TreeField, TreeMultiField, ValueFloatField)
 from openatlas.forms.validation import validate
 from openatlas.models.entity import Entity
 from openatlas.models.link import Link
@@ -142,8 +142,8 @@ def populate_reference_systems(form: FlaskForm, item: Entity) -> None:
             system_id = int(field.id.replace('reference_system_id_', ''))
             if system_id in system_links:
                 field.data = system_links[system_id].description
-                getattr(form, 'reference_system_precision_{id}'.format(
-                    id=system_id)).data = str(system_links[system_id].type.id)
+                precision_field = getattr(form, f'reference_system_precision_{system_id}')
+                precision_field.data = str(system_links[system_id].type.id)
 
 
 def customize_labels(
@@ -167,8 +167,8 @@ def add_buttons(
     setattr(form, 'save', SubmitField(_('save') if entity else _('insert')))
     if entity:
         return form
-    if 'continue' in forms[name] and (
-            name in ['involvement', 'find', 'human_remains', 'type'] or not origin):
+    if 'continue' in forms[name] \
+            and (name in ['involvement', 'find', 'human_remains', 'type'] or not origin):
         setattr(form, 'insert_and_continue', SubmitField(uc_first(_('insert and continue'))))
         setattr(form, 'continue_', HiddenField())
     insert_and_add = uc_first(_('insert and add')) + ' '
@@ -192,23 +192,24 @@ def add_buttons(
 
 
 def add_reference_systems(form: Any, form_name: str) -> None:
-    precisions = [('', '')]
-    for id_ in Node.get_hierarchy('External reference match').subs:
-        precisions.append((str(g.nodes[id_].id), g.nodes[id_].name))
-    for system in g.reference_systems.values():
+    precision_nodes = Node.get_hierarchy('External reference match').subs
+    precisions = [('', '')] + [(str(g.nodes[id_].id), g.nodes[id_].name) for id_ in precision_nodes]
+    systems = list(g.reference_systems.values())
+    systems.sort(key=lambda x: x.name.casefold())
+    for system in systems:
         if form_name not in [form_['name'] for form_ in system.get_forms().values()]:
             continue
         setattr(
             form,
-            'reference_system_id_{id}'.format(id=system.id),
+            f'reference_system_id_{system.id}',
             StringField(
-                system.name,
+                uc_first(system.name),
                 validators=[OptionalValidator()],
                 description=system.description,
                 render_kw={'autocomplete': 'off', 'placeholder': system.placeholder}))
         setattr(
             form,
-            'reference_system_precision_{id}'.format(id=system.id),
+            f'reference_system_precision_{system.id}',
             SelectField(_('precision'), choices=precisions, default=system.precision_default_id))
 
 
@@ -315,7 +316,7 @@ def add_fields(
         choices = ReferenceSystem.get_form_choices(item)
         if choices:
             setattr(form, 'forms', SelectMultipleField(
-                _('forms'),
+                _('classes'),
                 render_kw={'disabled': True},
                 choices=choices,
                 option_widget=widgets.CheckboxInput(),
@@ -336,13 +337,11 @@ def build_add_reference_form(class_: str) -> FlaskForm:
 
 
 def build_table_form(class_: str, linked_entities: List[Entity]) -> str:
-    """ Returns a form with a list of entities with checkboxes."""
-    if class_ == 'file':
-        entities = Entity.get_by_class('file', nodes=True)
-    elif class_ == 'place':
+    """Returns a form with a list of entities with checkboxes."""
+    if class_ == 'place':
         entities = Entity.get_by_class('place', nodes=True, aliases=True)
     else:
-        entities = Entity.get_by_view(class_)
+        entities = Entity.get_by_view(class_, nodes=True, aliases=True)
 
     linked_ids = [entity.id for entity in linked_entities]
     table = Table([''] + g.table_headers[class_], order=[[1, 'asc']])
@@ -350,22 +349,12 @@ def build_table_form(class_: str, linked_entities: List[Entity]) -> str:
     for entity in entities:
         if entity.id in linked_ids:
             continue  # Don't show already linked entries
-        input_ = '<input id="selection-{id}" name="values" type="checkbox" value="{id}">'.format(
-            id=entity.id)
+        input_ = f"""
+            <input id="selection-{entity.id}" name="values" type="checkbox" value="{entity.id}">"""
         table.rows.append([input_] + get_base_table_data(entity, file_stats))
     if not table.rows:
         return uc_first(_('no entries'))
-    return """
-        <form class="table" id="checkbox-form" method="post">
-            <input id="csrf_token" name="csrf_token" type="hidden" value="{token}">
-            <input id="checkbox_values" name="checkbox_values" type="hidden">
-            {table}
-            <input id="save" class="{class_}" name="save" type="submit" value="{link}">
-        </form>""".format(
-        link=uc_first(_('link')),
-        token=generate_csrf(),
-        class_=app.config['CSS']['button']['primary'],
-        table=table.display(class_))
+    return render_template('forms/form_table.html', table=table.display(class_))
 
 
 def build_move_form(node: Node) -> FlaskForm:

@@ -40,21 +40,27 @@ class ExportTest(TestBaseCase):
             rv = self.app.get(url_for('export_csv'))
             assert b'Export CSV' in rv.data
             date_string = Date.current_date_for_filename()
-            rv = self.app.post(url_for('export_csv'), follow_redirects=True,
-                               data={'zip': True, 'model_class': True,
-                                     'gis_point': True, 'gis_format': 'wkt'})
+            rv = self.app.post(
+                url_for('export_csv'),
+                follow_redirects=True,
+                data={'zip': True, 'model_class': True, 'gis_point': True, 'gis_format': 'wkt'})
             assert b'Data was exported as CSV' in rv.data
-            rv = self.app.post(url_for('export_csv'), follow_redirects=True,
-                               data={'model_class': True, 'timestamps': True,
-                                     'gis_polygon': True, 'gis_format': 'postgis'})
+            data = {
+                'model_class': True,
+                'timestamps': True,
+                'gis_polygon': True,
+                'gis_format': 'postgis'}
+            rv = self.app.post(url_for('export_csv'), follow_redirects=True, data=data)
+
             assert b'Data was exported as CSV' in rv.data
-            rv = self.app.post(url_for('export_csv'), follow_redirects=True,
-                               data={'model_class': True, 'timestamps': True, 'gis_point': True,
-                                     'gis_polygon': True, 'gis_format': 'coordinates'})
+            data['gis_point'] = True
+            data['gis_format'] = 'coordinates'
+            rv = self.app.post(url_for('export_csv'), follow_redirects=True, data=data)
             assert b'Data was exported as CSV' in rv.data
             self.app.get(url_for('download_csv', filename=date_string + '_csv.zip'))
-            rv = self.app.get(url_for('delete_csv', filename=date_string + '_csv.zip'),
-                              follow_redirects=True)
+            rv = self.app.get(
+                url_for('delete_csv', filename=date_string + '_csv.zip'),
+                follow_redirects=True)
             assert b'File deleted' in rv.data
             rv = self.app.get(url_for('delete_csv', filename='non_existing'), follow_redirects=True)
             assert b'An error occurred when trying to delete the file' in rv.data

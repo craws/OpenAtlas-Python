@@ -21,7 +21,7 @@ class Gis:
     def get_by_id(id_: int) -> List[Dict[str, Any]]:
         geometries = []
         for shape in ['point', 'polygon', 'linestring']:
-            sql = """
+            sql = f"""
                 SELECT
                     {shape}.id,
                     {shape}.name,
@@ -30,7 +30,7 @@ class Gis:
                     public.ST_AsGeoJSON({shape}.geom) AS geojson
                 FROM model.entity place
                 JOIN gis.{shape} {shape} ON place.id = {shape}.entity_id
-                WHERE place.id = %(id_)s;""".format(shape=shape)
+                WHERE place.id = %(id_)s;"""
             g.cursor.execute(sql, {'id_': id_})
             for row in g.cursor.fetchall():
                 geometry = ast.literal_eval(row['geojson'])
@@ -44,7 +44,7 @@ class Gis:
     def get_by_shape(shape: str, extra_ids: List[int]) -> List[Dict[str, Any]]:
         polygon_sql = '' if shape != 'polygon' else \
             'public.ST_AsGeoJSON(public.ST_PointOnSurface(polygon.geom)) AS polygon_point, '
-        sql = """
+        sql = f"""
             SELECT
                 object.id AS object_id,
                 {shape}.id,
@@ -63,7 +63,7 @@ class Gis:
             WHERE place.class_code = 'E53'
                 AND l.property_code = 'P53'
                 AND (object.system_class = 'place' OR object.id IN %(extra_ids)s)
-            GROUP BY object.id, {shape}.id;""".format(shape=shape, polygon_sql=polygon_sql)
+            GROUP BY object.id, {shape}.id;"""
         g.cursor.execute(sql, {'extra_ids': tuple(extra_ids)})
         return [dict(row) for row in g.cursor.fetchall()]
 
@@ -78,14 +78,13 @@ class Gis:
 
     @staticmethod
     def insert(data: Dict[str, Any], shape: str) -> None:
-        sql = """
+        sql = f"""
             INSERT INTO gis.{shape} (entity_id, name, description, type, geom) VALUES (
                 %(entity_id)s,
                 %(name)s,
                 %(description)s,
                 %(type)s,
-                public.ST_SetSRID(public.ST_GeomFromGeoJSON(%(geojson)s),4326));
-            """.format(shape=shape)
+                public.ST_SetSRID(public.ST_GeomFromGeoJSON(%(geojson)s),4326));"""
         g.cursor.execute(sql, data)
 
     @staticmethod

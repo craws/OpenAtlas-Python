@@ -34,9 +34,10 @@ class ReferenceSystemTest(TestBaseCase):
                 follow_redirects=True)
             assert b'Deletion not possible if forms are attached' in rv.data
             rv = self.app.get(
-                url_for('reference_system_remove_form',
-                        system_id=wikipedia_id,
-                        form_id=geonames.forms[0]),
+                url_for(
+                    'reference_system_remove_form',
+                    system_id=wikipedia_id,
+                    form_id=geonames.forms[0]),
                 follow_redirects=True)
             assert b'Changes have been saved' in rv.data
             rv = self.app.get(url_for('index', view='reference_system', delete_id=wikipedia_id))
@@ -101,9 +102,10 @@ class ReferenceSystemTest(TestBaseCase):
                     self.precision_wikidata: ''})
             assert b'Wrong id format' in rv.data
             rv = self.app.get(
-                url_for('reference_system_remove_form',
-                        system_id=geonames.id,
-                        form_id=geonames.forms[0]),
+                url_for(
+                    'reference_system_remove_form',
+                    system_id=geonames.id,
+                    form_id=geonames.forms[0]),
                 follow_redirects=True)
             assert b'Changes have been saved' in rv.data
             rv = self.app.get(url_for('index', view='reference_system', delete_id=geonames.id))

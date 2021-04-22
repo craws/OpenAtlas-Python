@@ -116,8 +116,9 @@ class Import:
                 entity.link('P53', location)
                 if 'easting' in row and is_float(row['easting']):
                     if 'northing' in row and is_float(row['northing']):
-                        Gis.insert_import(entity=entity,
-                                          location=location,
-                                          project=project,
-                                          easting=row['easting'],
-                                          northing=row['northing'])
+                        Gis.insert_import(
+                            entity=entity,
+                            location=location,
+                            project=project,
+                            easting=row['easting'],
+                            northing=row['northing'])

@@ -5,8 +5,9 @@ from typing import Any, Dict, List, Optional
 from openatlas.models.entity import Entity
 
 
-def get_structure(object_: Optional[Entity] = None,
-                  super_: Optional[Entity] = None) -> Optional[Dict[str, Any]]:
+def get_structure(
+        object_: Optional[Entity] = None,
+        super_: Optional[Entity] = None) -> Optional[Dict[str, Any]]:
     super_id = None
     place = None
     feature = None

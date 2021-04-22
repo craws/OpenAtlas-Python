@@ -135,7 +135,8 @@ class PlaceTest(TestBaseCase):
             with open(path, 'rb') as img:
                 rv = self.app.post(
                     url_for('insert', class_='file', origin_id=place.id),
-                    data={'name': 'X-Files', 'file': img}, follow_redirects=True)
+                    data={'name': 'X-Files', 'file': img},
+                    follow_redirects=True)
             assert b'An entry has been created' in rv.data
             with app.test_request_context():
                 app.preprocess_request()  # type: ignore
@@ -144,8 +145,11 @@ class PlaceTest(TestBaseCase):
             rv = self.app.get(
                 url_for('overlay_insert', image_id=file.id, place_id=place.id, link_id=link_id))
             assert b'X-Files' in rv.data
-            data = {'top_left_easting': 42, 'top_left_northing': 12,
-                    'bottom_right_easting': 43, 'bottom_right_northing': 13}
+            data = {
+                'top_left_easting': 42,
+                'top_left_northing': 12,
+                'bottom_right_easting': 43,
+                'bottom_right_northing': 13}
             rv = self.app.post(
                 url_for('overlay_insert', image_id=file.id, place_id=place.id, link_id=link_id),
                 data=data,

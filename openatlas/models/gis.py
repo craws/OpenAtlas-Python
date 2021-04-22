@@ -131,18 +131,18 @@ class Gis:
                         'geojson': json.dumps(item['geometry'])})
 
     @staticmethod
-    def insert_import(entity: Entity,
-                      location: Entity,
-                      project: Project,
-                      easting: float,
-                      northing: float) -> None:
+    def insert_import(
+            entity: Entity,
+            location: Entity,
+            project: Project,
+            easting: float,
+            northing: float) -> None:
         Db.insert_import({
             'entity_id': location.id,
             'description': 'Imported centerpoint of {name} from the {project} project'.format(
                 name=sanitize(entity.name, 'text'),
                 project=sanitize(project.name, 'text')),
-            'geojson': '''{{"type":"Point", "coordinates": [{easting},{northing}]}}'''.format(
-                easting=easting, northing=northing)})
+            'geojson': f'{{"type":"Point", "coordinates": [{easting},{northing}]}}'})
 
     @staticmethod
     def delete_by_entity(entity: Entity) -> None:

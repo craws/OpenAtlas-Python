@@ -33,10 +33,11 @@ def overlay_insert(image_id: int, place_id: int, link_id: int) -> Union[str, Res
     return render_template(
         'overlay/insert.html',
         form=form,
-        crumbs=[[_('place'), url_for('index', view='place')],
-                Entity.get_by_id(place_id),
-                Entity.get_by_id(image_id),
-                _('overlay')])
+        crumbs=[
+            [_('place'), url_for('index', view='place')],
+            Entity.get_by_id(place_id),
+            Entity.get_by_id(image_id),
+            _('overlay')])
 
 
 @app.route('/overlay/update/<int:id_>', methods=['POST', 'GET'])
@@ -59,10 +60,11 @@ def overlay_update(id_: int) -> Union[str, Response]:
         form=form,
         overlay=overlay,
         entity=entity,
-        crumbs=[[_('place'), url_for('index', view='place')],
-                entity,
-                Entity.get_by_id(overlay.image_id),
-                _('update overlay')])
+        crumbs=[
+            [_('place'), url_for('index', view='place')],
+            entity,
+            Entity.get_by_id(overlay.image_id),
+            _('update overlay')])
 
 
 @app.route('/overlay/remove/<int:id_>/<int:place_id>')

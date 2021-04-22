@@ -27,7 +27,7 @@ class ReferenceSystem(Entity):
         self.resolver_url = row['resolver_url']
         self.forms = row['form_ids']
         self.placeholder = row['identifier_example']
-        self.precision_default_id = row['precision_default_id']
+        self.precision_default_id = list(self.nodes.keys())[0].id if self.nodes else None
         self.count = row['count']
         self.system = row['system']
 
@@ -56,17 +56,12 @@ class ReferenceSystem(Entity):
 
     def update_system(self, form: FlaskForm) -> None:
         self.update(form)
-        precision_default_id = None
-        entity_with_updated_nodes = Entity.get_by_id(self.id, nodes=True)
-        if entity_with_updated_nodes.nodes:  # Get default precision id if it was set
-            precision_default_id = list(entity_with_updated_nodes.nodes.keys())[0].id
         Db.update_system({
             'entity_id': self.id,
             'name': self.name,
             'website_url': self.website_url,
             'resolver_url': self.resolver_url,
-            'identifier_example': self.placeholder,
-            'precision_default_id': precision_default_id})
+            'identifier_example': self.placeholder})
 
     @staticmethod
     def update_links(form: FlaskForm, entity: Entity) -> None:
@@ -85,7 +80,7 @@ class ReferenceSystem(Entity):
             if not entity or row['id'] not in entity.forms:
                 if entity and entity.name == 'GeoNames' and row['name'] != 'Place':
                     continue
-                choices.append((row['id'], row['name']))
+                choices.append((row['id'], g.classes[row['name']].label))
         return choices
 
     @staticmethod

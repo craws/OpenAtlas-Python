@@ -9,11 +9,12 @@ class DateTest(TestBaseCase):
     def test_date(self) -> None:
         with app.app_context():  # type: ignore
             # Dates insert (don't change year values - they test leap years too)
-            data = {'name': 'Date place',
-                    'begin_year_from': -1949, 'begin_month_from': 2, 'begin_day_from': 8,
-                    'begin_year_to': -1948, 'end_year_from': 1996, 'end_year_to': 1996,
-                    self.precision_geonames: '',
-                    self.precision_wikidata: ''}
+            data = {
+                'name': 'Date place',
+                'begin_year_from': -1949, 'begin_month_from': 2, 'begin_day_from': 8,
+                'begin_year_to': -1948, 'end_year_from': 1996, 'end_year_to': 1996,
+                self.precision_geonames: '',
+                self.precision_wikidata: ''}
             rv = self.app.post(url_for('insert', class_='place'), data=data, follow_redirects=True)
             assert b'Date place' in rv.data
 

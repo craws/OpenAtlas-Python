@@ -59,10 +59,11 @@ class Import:
         g.cursor.execute(sql, {'id': id_, 'name': name, 'description': description})
 
     @staticmethod
-    def import_data(project_id: int,
-                    entity_id: int,
-                    user_id: int,
-                    origin_id: Optional[int]) -> None:
+    def import_data(
+            project_id: int,
+            entity_id: int,
+            user_id: int,
+            origin_id: Optional[int]) -> None:
         sql = """
             INSERT INTO import.entity (project_id, origin_id, entity_id, user_id)
             VALUES (%(project_id)s, %(origin_id)s, %(entity_id)s, %(user_id)s);"""

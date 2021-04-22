@@ -11,7 +11,8 @@ from openatlas.models.imports import Import
 class Logger:
 
     @staticmethod
-    def log(priority_: str,
+    def log(
+            priority_: str,
             type_: str,
             message: str,
             info: Union[str, Exception, None] = None) -> None:

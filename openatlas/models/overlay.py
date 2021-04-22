@@ -28,25 +28,18 @@ class Overlay:
             'image_id': image_id,
             'place_id': place_id,
             'link_id': link_id,
-            'bounding_box':
-                '[[{top_left_northing}, {top_left_easting}],'
-                '[{bottom_right_northing}, {bottom_right_easting}]]'.format(
-                    top_left_easting=form.top_left_easting.data,
-                    top_left_northing=form.top_left_northing.data,
-                    bottom_right_easting=form.bottom_right_easting.data,
-                    bottom_right_northing=form.bottom_right_northing.data)})
+            'bounding_box': f'''[
+                [{form.top_left_northing.data}, {form.top_left_easting.data}],
+                [{form.bottom_right_northing.data}, {form.bottom_right_easting.data}]]'''})
 
     @staticmethod
     def update(form: FlaskForm, image_id: int, place_id: int) -> None:
         Db.update({
             'image_id': image_id,
             'place_id': place_id,
-            'bounding_box': '[[{top_left_northing}, {top_left_easting}],'
-            '[{bottom_right_northing}, {bottom_right_easting}]]'.format(
-                top_left_easting=form.top_left_easting.data,
-                top_left_northing=form.top_left_northing.data,
-                bottom_right_easting=form.bottom_right_easting.data,
-                bottom_right_northing=form.bottom_right_northing.data)})
+            'bounding_box': f'''[
+                [{form.top_left_northing.data}, {form.top_left_easting.data}],
+                [{form.bottom_right_northing.data}, {form.bottom_right_easting.data}]]'''})
 
     @staticmethod
     def get_by_object(object_: Entity) -> Dict[int, Overlay]:

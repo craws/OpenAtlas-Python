@@ -18,10 +18,11 @@ if TYPE_CHECKING:  # pragma: no cover - Type checking is disabled in tests
 class Link:
     object_: Optional['Entity']
 
-    def __init__(self,
-                 row: Dict[str, Any],
-                 domain: Optional['Entity'] = None,
-                 range_: Optional['Entity'] = None) -> None:
+    def __init__(
+            self,
+            row: Dict[str, Any],
+            domain: Optional['Entity'] = None,
+            range_: Optional['Entity'] = None) -> None:
         from openatlas.models.entity import Entity
         from openatlas.forms.date import format_date
         self.id = row['id']
@@ -83,12 +84,13 @@ class Link:
             self.end_comment = form.end_comment.data
 
     @staticmethod
-    def insert(entity: 'Entity',
-               property_code: str,
-               range_: Union['Entity', List['Entity']],
-               description: Optional[str] = None,
-               inverse: bool = False,
-               type_id: Optional[int] = None) -> List[int]:
+    def insert(
+            entity: 'Entity',
+            property_code: str,
+            range_: Union['Entity', List['Entity']],
+            description: Optional[str] = None,
+            inverse: bool = False,
+            type_id: Optional[int] = None) -> List[int]:
         property_ = g.properties[property_code]
         entities = range_ if isinstance(range_, list) else [range_]
         new_link_ids = []
@@ -117,10 +119,11 @@ class Link:
         return new_link_ids
 
     @staticmethod
-    def get_linked_entity(id_: int,
-                          code: str,
-                          inverse: bool = False,
-                          nodes: bool = False) -> 'Entity':
+    def get_linked_entity(
+            id_: int,
+            code: str,
+            inverse: bool = False,
+            nodes: bool = False) -> 'Entity':
         result = Link.get_linked_entities(id_, [code], inverse=inverse, nodes=nodes)
         if len(result) > 1:  # pragma: no cover
             logger.log('error', 'model', 'Multiple linked entities found for ' + code)
@@ -129,10 +132,11 @@ class Link:
         return result[0] if result else None
 
     @staticmethod
-    def get_linked_entities(id_: int,
-                            codes: Union[str, List[str]],
-                            inverse: bool = False,
-                            nodes: bool = False) -> List['Entity']:
+    def get_linked_entities(
+            id_: int,
+            codes: Union[str, List[str]],
+            inverse: bool = False,
+            nodes: bool = False) -> List['Entity']:
         from openatlas.models.entity import Entity
         codes = codes if isinstance(codes, list) else [codes]
         return Entity.get_by_ids(
@@ -140,9 +144,10 @@ class Link:
             nodes=nodes)
 
     @staticmethod
-    def get_linked_entity_safe(id_: int, code: str,
-                               inverse: bool = False,
-                               nodes: bool = False) -> 'Entity':
+    def get_linked_entity_safe(
+            id_: int, code: str,
+            inverse: bool = False,
+            nodes: bool = False) -> 'Entity':
         entity = Link.get_linked_entity(id_, code, inverse, nodes)
         if not entity:  # pragma: no cover - should return an entity so abort if not
             flash('Missing linked ' + code + ' for ' + str(id_), 'error')
@@ -151,9 +156,10 @@ class Link:
         return entity
 
     @staticmethod
-    def get_links(entity_id: int,
-                  codes: Union[str, List[str], None] = None,
-                  inverse: bool = False) -> List[Link]:
+    def get_links(
+            entity_id: int,
+            codes: Union[str, List[str], None] = None,
+            inverse: bool = False) -> List[Link]:
         from openatlas.models.entity import Entity
         entity_ids = set()
         result = Db.get_links(entity_id, codes if isinstance(codes, list) else [codes], inverse)
@@ -187,7 +193,7 @@ class Link:
 
     @staticmethod
     def check_links() -> List[Dict[str, str]]:
-        """ Check all existing links for CIDOC CRM validity and return the invalid ones."""
+        """Check links for CIDOC CRM validity and return the invalid ones."""
         from openatlas.util.display import link
         from openatlas.models.entity import Entity
         invalid_links = []
@@ -233,13 +239,12 @@ class Link:
                 for entity_node in entity.nodes:
                     if g.nodes[entity_node.root[-1]].id != node.id:
                         continue  # pragma: no cover
-                    offending_nodes.append('<a href="{url}">{label}</a> {name}'.format(
-                        label=uc_first(_('remove')),
-                        name=entity_node.name,
-                        url=url_for(
-                            'admin_delete_single_type_duplicate',
-                            entity_id=entity.id,
-                            node_id=entity_node.id)))
+                    url = url_for(
+                        'admin_delete_single_type_duplicate',
+                        entity_id=entity.id,
+                        node_id=entity_node.id)
+                    offending_nodes.append(
+                        f'<a href="{url}">{uc_first(_("remove"))}</a> {entity_node.name}')
                 data.append([
                     link(entity),
                     entity.class_.name,

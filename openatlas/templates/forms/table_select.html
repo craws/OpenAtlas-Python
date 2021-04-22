@@ -1,0 +1,47 @@
+<input
+    id="{{ field.id }}-button"
+    name="{{ field.id }}-button"
+    class="table-select {% if field.flags.required %}required{% endif %}"
+    type="text"
+    placeholder="{{ _('change')|uc_first }}"
+    onfocus="this.blur()"
+    readonly="readonly"
+    value="{{ selection }}"
+    onclick="$('#{{ field.id }}-modal').modal('show');">
+<a href="#"
+    id="{{ field.id }}-clear"
+    class="{{ config['CSS']['button']['secondary'] }}"
+    {% if not selection %}style="display: none;"{% endif %}
+    onclick="clearSelect('{{ field.id }}');">
+        {{ _('clear')|uc_first }}
+</a>
+<div
+    id="{{ field.id }}-modal"
+    class="modal fade"
+    tabindex="-1"
+    role="dialog"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document" style="max-width: 100%!important;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ _(field.id.replace('_', ' '))|uc_first }}</h5>
+                <button
+                    type="button"
+                    class="{{ config['CSS']['button']['primary'] }}"
+                    data-dismiss="modal"
+                    aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">{{ table }}</div>
+            <div class="modal-footer">
+                <button
+                    type="button"
+                    class="{{ config['CSS']['button']['primary'] }}"
+                    data-dismiss="modal">
+                        {{ _('close')|uc_first }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

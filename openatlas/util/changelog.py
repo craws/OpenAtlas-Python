@@ -4,6 +4,7 @@ class Changelog:
         '6.2.0': ['TBA', {
             'feature': {
                 '1284': 'Show image when editing a place or artifact',
+                '1476': 'Show/hide button for multiple reference systems',
                 '1496': 'API: Endpoints for entities of type'}}],
         '6.1.0': ['2021-04-05', {
             'feature': {

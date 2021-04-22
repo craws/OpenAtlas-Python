@@ -17,9 +17,9 @@ from openatlas.models.overlay import Overlay
 from openatlas.models.place import get_structure
 from openatlas.models.reference_system import ReferenceSystem
 from openatlas.models.user import User
-from openatlas.util.display import (add_edit_link, add_remove_link, button, display_delete_link,
-                                    format_date, get_base_table_data, get_entity_data,
-                                    get_file_path,  get_profile_image_table_link, link, uc_first)
+from openatlas.util.display import (
+    add_edit_link, add_remove_link, button, display_delete_link, format_date, get_base_table_data,
+    get_entity_data, get_file_path,  get_profile_image_table_link, link, uc_first)
 from openatlas.util.tab import Tab
 from openatlas.util.table import Table
 from openatlas.util.util import is_authorized, required_group
@@ -289,7 +289,9 @@ def entity_view(id_: int) -> Union[str, Response]:
                 tabs['event'].table.rows.append(data)
         tabs['file'] = Tab('file', entity)
         entity.image_id = entity.get_profile_image_id()
-        tabs['file'].table.header.append(uc_first(_('overlay')))
+        if entity.class_.view == 'place' and is_authorized('editor') and \
+                current_user.settings['module_map_overlay']:
+            tabs['file'].table.header.append(uc_first(_('overlay')))
         for link_ in entity.get_links('P67', inverse=True):
             domain = link_.domain
             data = get_base_table_data(domain)

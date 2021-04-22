@@ -30,7 +30,6 @@ class Node(Entity):
 
     @staticmethod
     def get_all_nodes() -> Dict[int, Node]:
-        """ Get and return all type and place nodes"""
         nodes = {}
         for row in Db.get_nodes('type', 'P127') + Db.get_nodes('administrative_unit', 'P89'):
             node = Node(row)
@@ -71,10 +70,11 @@ class Node(Entity):
                 node.forms = {form_id: forms[form_id] for form_id in hierarchy['form_ids']}
 
     @staticmethod
-    def get_root_path(nodes: Dict[int, Node],
-                      node: Node,
-                      super_id: int,
-                      root: List[int]) -> List[int]:
+    def get_root_path(
+            nodes: Dict[int, Node],
+            node: Node,
+            super_id: int,
+            root: List[int]) -> List[int]:
         super_ = nodes[super_id]
         super_.count_subs += node.count
         if not super_.root:

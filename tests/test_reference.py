@@ -20,9 +20,10 @@ class ReferenceTest(TestBaseCase):
                 app.preprocess_request()  # type: ignore
                 reference = Entity.get_by_id(rv.location.split('/')[-1])
             data['continue_'] = 'yes'
-            rv = self.app.post(url_for('insert', class_='external_reference'),
-                               data=data,
-                               follow_redirects=True)
+            rv = self.app.post(
+                url_for('insert', class_='external_reference'),
+                data=data,
+                follow_redirects=True)
             assert b'An entry has been created' in rv.data
             rv = self.app.get(url_for('index', view='reference'))
             assert b'https://openatlas.eu' in rv.data
@@ -31,9 +32,10 @@ class ReferenceTest(TestBaseCase):
             rv = self.app.get(url_for('update', id_=reference.id))
             assert b'https://openatlas.eu' in rv.data
             data['name'] = 'http://updated.openatlas.eu'
-            rv = self.app.post(url_for('update', id_=reference.id),
-                               data=data,
-                               follow_redirects=True)
+            rv = self.app.post(
+                url_for('update', id_=reference.id),
+                data=data,
+                follow_redirects=True)
             assert b'http://updated.openatlas.eu' in rv.data
 
             # Reference link
@@ -42,9 +44,10 @@ class ReferenceTest(TestBaseCase):
                 batman = Entity.insert('person', 'Batman')
             rv = self.app.get(url_for('reference_add', id_=reference.id, view='actor'))
             assert b'Batman' in rv.data
-            rv = self.app.post(url_for('reference_add', id_=reference.id, view='actor'),
-                               data={'actor': batman.id},
-                               follow_redirects=True)
+            rv = self.app.post(
+                url_for('reference_add', id_=reference.id, view='actor'),
+                data={'actor': batman.id},
+                follow_redirects=True)
             assert b'http://updated.openatlas.eu' in rv.data
 
             # Reference link update

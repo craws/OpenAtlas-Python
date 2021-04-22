@@ -62,9 +62,10 @@ class ActorTests(TestBaseCase):
             rv = self.app.post(
                 url_for('node_move_entities', id_=sex_node_sub_1.id),
                 follow_redirects=True,
-                data={sex_node.id: sex_node_sub_2.id,
-                      'selection': [actor_id],
-                      'checkbox_values': str([actor_id])})
+                data={
+                    sex_node.id: sex_node_sub_2.id,
+                    'selection': [actor_id],
+                    'checkbox_values': str([actor_id])})
             assert b'Entities were updated' in rv.data
             rv = self.app.post(
                 url_for('node_move_entities', id_=sex_node_sub_2.id),

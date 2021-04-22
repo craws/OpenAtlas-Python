@@ -1,0 +1,11 @@
+<form class="table" id="checkbox-form" method="post">
+    <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
+    <input id="checkbox_values" name="checkbox_values" type="hidden">
+    {{ table }}
+    <input
+        id="save"
+        class="{{ config['CSS']['button']['primary'] }}"
+        name="save"
+        type="submit"
+        value="{{ _('link')|uc_first }}">
+</form>

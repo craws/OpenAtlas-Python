@@ -11,7 +11,7 @@ class ReferenceSystem:
             SELECT
                 e.id, e.name, e.class_code, e.description, e.system_class, e.created, e.modified,
                 rs.website_url, rs.resolver_url, rs.identifier_example, rs.system,
-                rs.precision_default_id, COUNT(l.id) AS count,
+                COUNT(l.id) AS count,
                 (SELECT ARRAY(
                     SELECT f.id FROM web.form f
                     JOIN web.reference_system_form rfs ON f.id = rfs.form_id
@@ -24,9 +24,8 @@ class ReferenceSystem:
             LEFT JOIN model.link l ON e.id = l.domain_id AND l.property_code = 'P67'
             LEFT JOIN model.link t ON e.id = t.domain_id AND t.property_code = 'P2'
             GROUP BY
-                e.id, e.name, e.class_code, e.description, e.system_class, e.created,
-                e.modified, rs.website_url, rs.resolver_url, rs.identifier_example, rs.system,
-                rs.precision_default_id, rs.entity_id;""")
+                e.id, e.name, e.class_code, e.description, e.system_class, e.created, e.modified,
+                rs.website_url, rs.resolver_url, rs.identifier_example, rs.system, rs.entity_id;""")
         return [dict(row) for row in g.cursor.fetchall()]
 
     @staticmethod
@@ -56,10 +55,8 @@ class ReferenceSystem:
     @staticmethod
     def update_system(data: Dict[str, Any]) -> None:
         sql = '''
-            UPDATE web.reference_system SET (name, website_url, resolver_url, identifier_example,
-                precision_default_id)
-            = (%(name)s, %(website_url)s, %(resolver_url)s, %(identifier_example)s,
-                %(precision_default_id)s)
+            UPDATE web.reference_system SET (name, website_url, resolver_url, identifier_example)
+            = (%(name)s, %(website_url)s, %(resolver_url)s, %(identifier_example)s)
             WHERE entity_id = %(entity_id)s;'''
         g.cursor.execute(sql, data)
 

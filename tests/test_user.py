@@ -53,8 +53,10 @@ class UserTests(TestBaseCase):
             rv = self.app.get(url_for('user_update', id_=logged_in_user.id))
             assert b'Alice' in rv.data
             data['description'] = 'The warrant officer'
-            rv = self.app.post(url_for('user_update', id_=user_id),
-                               data=data, follow_redirects=True)
+            rv = self.app.post(
+                url_for('user_update', id_=user_id),
+                data=data,
+                follow_redirects=True)
             assert b'The warrant officer' in rv.data
             rv = self.app.get(url_for('admin_index', action='delete_user', id_=user_id))
             assert b'User deleted' in rv.data

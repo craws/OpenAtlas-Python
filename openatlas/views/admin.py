@@ -13,9 +13,9 @@ from wtforms import TextAreaField
 
 from openatlas import app, logger
 from openatlas.database.connect import Transaction
-from openatlas.forms.setting import (ApiForm, ContentForm, FilesForm, GeneralForm, LogForm,
-                                     MailForm, MapForm, ModulesForm, NewsLetterForm, SimilarForm,
-                                     TestMailForm)
+from openatlas.forms.setting import (
+    ApiForm, ContentForm, FilesForm, GeneralForm, LogForm, MailForm, MapForm, ModulesForm,
+    NewsLetterForm, SimilarForm, TestMailForm)
 from openatlas.forms.util import get_form_settings, set_form_settings
 from openatlas.models.content import Content
 from openatlas.models.date import Date
@@ -26,8 +26,9 @@ from openatlas.models.node import Node
 from openatlas.models.reference_system import ReferenceSystem
 from openatlas.models.settings import Settings
 from openatlas.models.user import User
-from openatlas.util.display import (convert_size, delete_link, format_date, format_datetime,
-                                    get_disk_space_info, get_file_path, link, sanitize, uc_first)
+from openatlas.util.display import (
+    convert_size, delete_link, format_date, format_datetime, get_disk_space_info, get_file_path,
+    link, sanitize, uc_first)
 from openatlas.util.table import Table
 from openatlas.util.util import get_file_stats, is_authorized, required_group, send_mail
 
@@ -54,21 +55,22 @@ def admin_index(action: Optional[str] = None, id_: Optional[int] = None) -> Unio
         'export/sql': True if os.access(app.config['EXPORT_DIR'] / 'sql', os.W_OK) else False,
         'export/csv': True if os.access(app.config['EXPORT_DIR'] / 'csv', os.W_OK) else False}
     tables = {
-        'user': Table(['username', 'name', 'group', 'email', 'newsletter', 'created', 'last login',
-                       'entities']),
+        'user': Table([
+            'username', 'name', 'group', 'email', 'newsletter', 'created', 'last login', 'entities'
+        ]),
         'content': Table(['name'] + [language for language in app.config['LANGUAGES'].keys()])}
     for user in User.get_all():
         count = User.get_created_entities_count(user.id)
         email = user.email if is_authorized('manager') or user.settings['show_email'] else ''
-        tables['user'].rows.append(
-            [link(user),
-             user.real_name,
-             user.group,
-             email,
-             _('yes') if user.settings['newsletter'] else '',
-             format_date(user.created),
-             format_date(user.login_last_success),
-             format_number(count) if count else ''])
+        tables['user'].rows.append([
+            link(user),
+            user.real_name,
+            user.group,
+            email,
+            _('yes') if user.settings['newsletter'] else '',
+            format_date(user.created),
+            format_date(user.login_last_success),
+            format_number(count) if count else ''])
     for item, languages in Content.get_content().items():
         content = [uc_first(_(item))]
         for language in app.config['LANGUAGES'].keys():
@@ -149,9 +151,9 @@ def admin_check_link_duplicates(delete: Optional[str] = None) -> Union[str, Resp
         logger.log('info', 'admin', 'Deleted duplicate links: ' + delete_count)
         flash(_('deleted links') + ': ' + delete_count, 'info')
         return redirect(url_for('admin_check_link_duplicates'))
-    table = Table(
-        ['domain', 'range', 'property_code', 'description', 'type_id', 'begin_from', 'begin_to',
-         'begin_comment', 'end_from', 'end_to', 'end_comment', 'count'])
+    table = Table([
+        'domain', 'range', 'property_code', 'description', 'type_id', 'begin_from', 'begin_to',
+        'begin_comment', 'end_from', 'end_to', 'end_comment', 'count'])
     for row in Link.check_link_duplicates():
         table.rows.append([
             link(Entity.get_by_id(row['domain_id'])),

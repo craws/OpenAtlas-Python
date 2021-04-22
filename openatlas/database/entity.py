@@ -126,7 +126,7 @@ class Entity:
 
     @staticmethod
     def delete(ids: List[int]) -> None:
-        # Triggers psql function model.delete_entity_related() for deleting related entities."""
+        """Triggers psql function model.delete_entity_related() to delete orphaned data"""
         g.cursor.execute('DELETE FROM model.entity WHERE id IN %(ids)s;', {'ids': tuple(ids)})
 
     @staticmethod

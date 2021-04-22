@@ -11,8 +11,8 @@ from openatlas import app, logger
 from openatlas.models.entity import Entity
 from openatlas.models.gis import Gis
 from openatlas.models.reference_system import ReferenceSystem
-from openatlas.util.display import (button, convert_size, external_url, format_date,
-                                    get_base_table_data, get_file_path, link)
+from openatlas.util.display import (
+    button, convert_size, external_url, format_date, get_base_table_data, get_file_path, link)
 from openatlas.util.table import Table
 from openatlas.util.util import get_file_stats, is_authorized, required_group
 
@@ -74,8 +74,8 @@ def get_table(view: str) -> Table:
                 system.description])
     else:
         classes = ['place'] if view == 'place' else g.view_class_mapping[view]
-        entities = Entity.get_by_class(classes, nodes=True)
-        table.rows = [get_base_table_data(item) for item in entities]
+        entities = Entity.get_by_class(classes, nodes=True, aliases=True)
+        table.rows = [get_base_table_data(entity) for entity in entities]
     return table
 
 

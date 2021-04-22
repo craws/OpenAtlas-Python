@@ -25,5 +25,4 @@ def inject_template_functions() -> Dict[str, Union[str, GlobalSearchForm]]:
                 logo = url_for('display_logo', filename=session['settings']['logo_file_id'] + ext)
         return logo
 
-    return dict(get_logo=get_logo(),
-                search_form=GlobalSearchForm(prefix="global"))
+    return dict(get_logo=get_logo(), search_form=GlobalSearchForm(prefix="global"))

@@ -9,14 +9,16 @@ from openatlas.util.display import uc_first
 
 class SystemClass:
 
-    def __init__(self,
-                 name: str,
-                 cidoc_class: str,
-                 label: Optional[str] = '',
-                 standard_type: Optional[str] = None,
-                 color: Optional[str] = None,
-                 write_access: Optional[str] = 'contributor',
-                 form_fields: Optional[List[str]] = None) -> None:
+    def __init__(
+            self,
+            name: str,
+            cidoc_class: str,
+            label: Optional[str] = '',
+            standard_type: Optional[str] = None,
+            alias_possible: Optional[bool] = False,
+            color: Optional[str] = None,
+            write_access: Optional[str] = 'contributor',
+            form_fields: Optional[List[str]] = None) -> None:
         self.name = name
         self.label = uc_first(label)
         self.cidoc_class: CidocClass = g.cidoc_classes[cidoc_class]
@@ -25,6 +27,7 @@ class SystemClass:
         self.write_access = write_access
         self.form_fields = form_fields if form_fields else []
         self.view = None
+        self.alias_possible = alias_possible
         for item, classes in view_class_mapping.items():
             if name in classes:
                 self.view = item
@@ -153,6 +156,7 @@ def get_system_classes() -> Dict[str, SystemClass]:
             cidoc_class='E74',
             label=_('group'),
             color='#34623C',
+            alias_possible=True,
             form_fields=[]),
         'human_remains': SystemClass(
             name='human_remains',
@@ -176,6 +180,7 @@ def get_system_classes() -> Dict[str, SystemClass]:
             cidoc_class='E21',
             label=_('person'),
             color='#34B522',
+            alias_possible=True,
             form_fields=[]),
         'place': SystemClass(
             name='place',
@@ -183,6 +188,7 @@ def get_system_classes() -> Dict[str, SystemClass]:
             label=_('place'),
             color='#FF0000',
             standard_type='Place',
+            alias_possible=True,
             form_fields=[]),
         'reference_system': SystemClass(
             name='reference_system',

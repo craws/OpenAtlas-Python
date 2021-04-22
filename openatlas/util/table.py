@@ -8,21 +8,23 @@ from markupsafe import Markup
 
 class Table:
 
-    def __init__(self,
-                 header: Optional[List[str]] = None,  # A list of column header labels
-                 rows: Optional[List[List[Any]]] = None,  # Rows containing the data
-                 order: Optional[List[List[Union[int, str]]]] = None,  # Column order option
-                 defs: Optional[List[Any]] = None,  # Definitions
-                 paging: bool = True) -> None:  # Whether to show pager
+    def __init__(
+            self,
+            header: Optional[List[str]] = None,  # A list of column header labels
+            rows: Optional[List[List[Any]]] = None,  # Rows containing the data
+            order: Optional[List[List[Union[int, str]]]] = None,  # Column order option
+            defs: Optional[List[Dict[str, Any]]] = None,  # Definitions
+            paging: bool = True) -> None:  # Whether to show pager
         self.header = header if header else []
         self.rows = rows if rows else []
         self.paging = paging
         self.order = order if order else ''
-        self.defs = defs if defs else ''
-        if not self.defs:
-            right_align = ['begin', 'end', 'size']
-            targets = [index for index, item in enumerate(self.header) if item in right_align]
-            self.defs = [{'className': 'dt-body-right', 'targets': targets}] if targets else ''
+        self.defs = defs if defs else []
+
+        # Right align date columns
+        self.defs.append({
+            'className': 'dt-body-right',
+            'targets': [i for i, j in enumerate(self.header) if j in ['begin', 'end', 'size']]})
 
     def display(self, name: Optional[str] = 'default') -> str:
         from openatlas.util.display import uc_first
@@ -54,11 +56,9 @@ class Table:
             </script>""".format(name=name, data_table=json.dumps(data_table))
 
         # Toggle header and footer HTML
-        css_header = '#{name}_table_wrapper .row:first-of-type {{ display:none; }}'.format(
-            name=name)
-        css_toolbar = '#{name}_table_wrapper .row:last-of-type {{ display:none; }}'.format(
-            name=name)
+        hide_header = f'#{name}_table_wrapper .row:first-of-type {{ display:none; }}'
+        hide_toolbar = f'#{name}_table_wrapper .row:last-of-type {{ display:none; }}'
         html += '<style type="text/css">{header} {toolbar}</style>'.format(
-            header=css_header if not self.header else '',
-            toolbar=css_toolbar if len(self.rows) <= current_user.settings['table_rows'] else '')
+            header=hide_header if not self.header else '',
+            toolbar=hide_toolbar if len(self.rows) <= current_user.settings['table_rows'] else '')
         return Markup(html)
