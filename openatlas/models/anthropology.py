@@ -1,12 +1,18 @@
+from typing import Dict
+
+from openatlas.models.entity import Entity
+
+
 class SexEstimation:
-    options = [
-        ('', ''),
-        ('1', 'Female'),
-        ('2', 'Female?'),
-        ('3', 'Indifferent'),
-        ('4', 'Male?'),
-        ('5', 'Male'),
-        ('6', 'Not preserved')]
+
+    options = {
+        '': 0,
+        'Female': -2,
+        'Female?': -1,
+        'Indifferent': 0,
+        'Male?': 1,
+        'Male': 2,
+        'Not preserved': 0}
 
     features = {
         'Skull': {
@@ -45,3 +51,12 @@ class SexEstimation:
         'Robusticity': {
             'Humerus': 1,
             'Femur': 1}}
+
+    @staticmethod
+    def save(entity: Entity, data: Dict[str, int]) -> None:
+        print(f'Calculating sex estimation for {entity.name}')
+        for key, item in data.items():
+            print(key)
+            print(item)
+            print(SexEstimation.options[item])
+        print(f'This values {data}')

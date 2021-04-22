@@ -43,15 +43,21 @@ def anthropology_sex_update(id_: int) -> Union[str, Response]:
 
     class Form(FlaskForm):  # type: ignore
         pass
-
+    choices = [(option, option) for option in SexEstimation.options.keys()]
     for features in SexEstimation.features.values():
         for feature in features.keys():
             label = uc_first(feature.replace('_', ' '))
-            setattr(Form, feature, SelectField(label, choices=SexEstimation.options))
+            setattr(Form, feature, SelectField(label, choices=choices))
 
     setattr(Form, 'save', SubmitField(_('save')))
     form = Form()
+
     entity = Entity.get_by_id(id_)
+    if form.validate_on_submit():
+        data = form.data
+        data.pop('save')
+        data.pop('csrf_token')
+        SexEstimation.save(entity, data)
 
     return render_template(
         'anthropology/sex_update.html',
@@ -62,7 +68,4 @@ def anthropology_sex_update(id_: int) -> Union[str, Response]:
             [_('anthropological analyzes'), url_for('anthropology_index', id_=entity.id)],
             [_('sex estimation'), url_for('anthropology_sex', id_=entity.id)],
             _('edit')])
-
-
-    # node = Node.get_hierarchy('Sex estimation')
 
