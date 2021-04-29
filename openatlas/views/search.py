@@ -9,9 +9,8 @@ from openatlas import app
 from openatlas.models.date import Date
 from openatlas.models.entity import Entity
 from openatlas.models.search import search
-from openatlas.util.display import link
 from openatlas.util.table import Table
-from openatlas.util.util import required_group
+from openatlas.util.util import link, required_group
 
 
 class SearchForm(FlaskForm):  # type: ignore

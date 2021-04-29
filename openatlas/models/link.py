@@ -9,7 +9,6 @@ from flask_wtf import FlaskForm
 from openatlas import logger
 from openatlas.database.link import Link as Db
 from openatlas.models.date import Date
-from openatlas.util.display import link, uc_first
 
 if TYPE_CHECKING:  # pragma: no cover - Type checking is disabled in tests
     from openatlas.models.entity import Entity
@@ -192,26 +191,25 @@ class Link:
         Db.delete_(id_)
 
     @staticmethod
-    def check_links() -> List[Dict[str, str]]:
-        """Check links for CIDOC CRM validity and return the invalid ones."""
-        from openatlas.util.display import link
+    def get_invalid_cidoc_links() -> List[Dict[str, str]]:
         from openatlas.models.entity import Entity
-        invalid_links = []
+        from openatlas.util.util import link
+        invalid_linking = []
         for row in Db.get_cidoc_links():
-            property_ = g.properties[row['property']]
-            domain_is_valid = property_.find_object('domain_class_code', row['domain'])
-            range_is_valid = property_.find_object('range_class_code', row['range'])
-            invalid_linking = []
+            property_ = g.properties[row['property_code']]
+            domain_is_valid = property_.find_object('domain_class_code', row['domain_code'])
+            range_is_valid = property_.find_object('range_class_code', row['range_code'])
             if not domain_is_valid or not range_is_valid:
                 invalid_linking.append(row)
-            for item in invalid_linking:
-                for row2 in Db.get_invalid_links(item):
-                    domain = Entity.get_by_id(row2['domain_id'])
-                    range_ = Entity.get_by_id(row2['range_id'])
-                    invalid_links.append({
-                        'domain': link(domain) + ' (' + domain.cidoc_class.code + ')',
-                        'property': link(g.properties[row2['property_code']]),
-                        'range': link(range_) + ' (' + range_.cidoc_class.code + ')'})
+        invalid_links = []
+        for item in invalid_linking:
+            for row in Db.get_invalid_links(item):
+                domain = Entity.get_by_id(row['domain_id'])
+                range_ = Entity.get_by_id(row['range_id'])
+                invalid_links.append({
+                    'domain': link(domain) + ' (' + domain.cidoc_class.code + ')',
+                    'property': link(g.properties[row['property_code']]),
+                    'range': link(range_) + ' (' + range_.cidoc_class.code + ')'})
         return invalid_links
 
     @staticmethod
@@ -226,6 +224,8 @@ class Link:
     def check_single_type_duplicates() -> List[List[str]]:
         from openatlas.models.node import Node
         from openatlas.models.entity import Entity
+        from openatlas.util.util import uc_first
+        from openatlas.util.util import link
         data = []
         for node in g.nodes.values():
             if node.root or node.multiple or node.value_type:

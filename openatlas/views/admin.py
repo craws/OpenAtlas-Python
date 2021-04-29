@@ -26,11 +26,10 @@ from openatlas.models.node import Node
 from openatlas.models.reference_system import ReferenceSystem
 from openatlas.models.settings import Settings
 from openatlas.models.user import User
-from openatlas.util.display import (
-    convert_size, delete_link, format_date, format_datetime, get_disk_space_info, get_file_path,
-    link, sanitize, uc_first)
 from openatlas.util.table import Table
-from openatlas.util.util import get_file_stats, is_authorized, required_group, send_mail
+from openatlas.util.util import (
+    convert_size, delete_link, format_date, format_datetime, get_disk_space_info, get_file_path,
+    get_file_stats, is_authorized, link, required_group, sanitize, send_mail, uc_first)
 
 
 @app.route('/admin', methods=["GET", "POST"])
@@ -137,7 +136,7 @@ def admin_check_links() -> str:
         'admin/check_links.html',
         table=Table(
             ['domain', 'property', 'range'],
-            rows=[[x['domain'], x['property'], x['range']] for x in Link.check_links()]),
+            rows=[[x['domain'], x['property'], x['range']] for x in Link.get_invalid_cidoc_links()]),
         title=_('admin'),
         crumbs=[[_('admin'), url_for('admin_index') + '#tab-data'], _('check links')])
 

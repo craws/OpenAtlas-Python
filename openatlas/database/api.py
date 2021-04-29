@@ -8,18 +8,16 @@ from openatlas.database.entity import Entity
 class Api:
 
     @staticmethod
-    def get_by_class_code(code: Union[str, List[str]],
-                          parser: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def get_by_class_code(
+            code: Union[str, List[str]],
+            parser: Dict[str, Any]) -> List[Dict[str, Any]]:
         sql_parts = Filter.get_filter(
             parameters={'codes': tuple(code if isinstance(code, list) else [code])},
             parser=parser)
-        sql = Entity.build_sql(nodes=True) + """
-            WHERE class_code IN %(codes)s {clause} 
+        sql = Entity.build_sql(nodes=True) + f"""
+            WHERE class_code IN %(codes)s {sql_parts['clause']} 
             GROUP BY e.id
-            ORDER BY {order} {sort};""".format(
-            clause=sql_parts['clause'],
-            order=', '.join(parser['column']),
-            sort=parser['sort'])
+            ORDER BY {', '.join(parser['column'])} {parser['sort']};"""
         g.cursor.execute(sql, sql_parts['parameters'])
         return [dict(row) for row in g.cursor.fetchall()]
 
@@ -28,13 +26,10 @@ class Api:
         sql_parts = Filter.get_filter(
             parameters={'class': tuple(classes if isinstance(classes, list) else [classes])},
             parser=parser)
-        sql = Entity.build_sql(nodes=True, aliases=True) + """
-            WHERE e.system_class IN %(class)s {clause}
+        sql = Entity.build_sql(nodes=True, aliases=True) + f"""
+            WHERE e.system_class IN %(class)s {sql_parts['clause']}
             GROUP BY e.id
-            ORDER BY {order} {sort};""".format(
-            clause=sql_parts['clause'],
-            order=', '.join(parser['column']),
-            sort=parser['sort'])
+            ORDER BY {', '.join(parser['column'])} {parser['sort']};"""
         g.cursor.execute(sql, sql_parts['parameters'])
         return [dict(row) for row in g.cursor.fetchall()]
 

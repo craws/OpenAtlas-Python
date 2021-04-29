@@ -1,7 +1,7 @@
 import ast
 from typing import Any, Dict, List
 
-from flask import g, json
+from flask import g
 
 
 class Gis:

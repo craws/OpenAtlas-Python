@@ -17,12 +17,11 @@ from openatlas.models.overlay import Overlay
 from openatlas.models.place import get_structure
 from openatlas.models.reference_system import ReferenceSystem
 from openatlas.models.user import User
-from openatlas.util.display import (
-    add_edit_link, add_remove_link, button, display_delete_link, format_date, get_base_table_data,
-    get_entity_data, get_file_path,  get_profile_image_table_link, link, uc_first)
 from openatlas.util.tab import Tab
 from openatlas.util.table import Table
-from openatlas.util.util import is_authorized, required_group
+from openatlas.util.util import (
+    add_edit_link, add_remove_link, button, display_delete_link, format_date, get_base_table_data,
+    get_entity_data, get_file_path, is_authorized, link, required_group, uc_first)
 from openatlas.views.reference import AddReferenceForm
 
 
@@ -368,6 +367,18 @@ def entity_view(id_: int) -> Union[str, Response]:
         gis_data=gis_data,
         title=entity.name,
         crumbs=add_crumbs(entity, structure))
+
+
+def get_profile_image_table_link(
+        file: Entity,
+        entity: Entity,
+        extension: str,
+        profile_image_id: Optional[int] = None) -> str:
+    if file.id == profile_image_id:
+        return link(_('unset'), url_for('file_remove_profile_image', entity_id=entity.id))
+    elif extension in app.config['DISPLAY_FILE_EXTENSIONS']:
+        return link(_('set'), url_for('set_profile_image', id_=file.id, origin_id=entity.id))
+    return ''  # pragma: no cover
 
 
 def add_crumbs(entity: Union[Entity, Node], structure: Optional[Dict[str, Any]]) -> List[str]:

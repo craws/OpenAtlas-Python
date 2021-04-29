@@ -13,9 +13,9 @@ from openatlas.database.entity import Entity as Db
 from openatlas.forms.date import format_date
 from openatlas.models.date import Date
 from openatlas.models.link import Link
-from openatlas.util.display import get_file_extension, link
+from openatlas.util.util import get_file_extension, link, sanitize
 
-if TYPE_CHECKING:  # pragma: no cover - Type checking is disabled in tests
+if TYPE_CHECKING:  # pragma: no cover
     from openatlas.models.node import Node
     from openatlas.models.reference_system import ReferenceSystem
 
@@ -119,7 +119,6 @@ class Entity:
         Link.delete_by_codes(self, codes, inverse)
 
     def update(self, form: Optional[FlaskForm] = None) -> None:
-        from openatlas.util.display import sanitize
         if form:  # e.g. imports have no forms
             self.save_nodes(form)
             if self.class_.name != 'object_location':
@@ -211,19 +210,18 @@ class Entity:
     def remove_profile_image(self) -> None:
         Db.remove_profile_image(self.id)
 
-    def print_standard_type(self) -> str:
+    def print_standard_type(self, show_links: Optional[bool] = True) -> str:
         from openatlas.models.node import Node
         if not self.class_.standard_type:
             return ''
         root_id = Node.get_hierarchy(self.class_.standard_type).id
         for node in self.nodes:
             if node.root and node.root[-1] == root_id:
-                return link(node)
+                return link(node) if show_links else node.name
         return ''
 
     def get_name_directed(self, inverse: bool = False) -> str:
         """Returns name part of a directed type e.g. actor actor relation: parent of (child of)"""
-        from openatlas.util.display import sanitize
         name_parts = self.name.split(' (')
         if inverse and len(name_parts) > 1:  # pragma: no cover
             return sanitize(name_parts[1], 'node')
@@ -263,7 +261,6 @@ class Entity:
 
     @staticmethod
     def insert(class_name: str, name: str, description: Optional[str] = None) -> Entity:
-        from openatlas.util.display import sanitize
         if not name:  # pragma: no cover
             from openatlas import logger
             logger.log('error', 'model', 'Insert entity without name')

@@ -1,42 +1,42 @@
 <script>
-    var geoNamesModule = {{ 'true' if geonames_module else 'false' }};
-    var geoNamesUsername = '{{ session['settings']['geonames_username'] }}';
-    var gisPointAll = {{ gis_data['gisPointAll']|safe }};
-    var gisPointSupers = {{ gis_data['gisPointSupers']|safe }};
-    var gisPointSubs = {{ gis_data['gisPointSubs']|safe }};
-    var gisPointSibling = {{ gis_data['gisPointSibling']|safe }};
-    var gisPointSelected = {{ gis_data['gisPointSelected']|safe }};
-    var gisLineAll = {{ gis_data['gisLineAll']|safe }};
-    var gisLineSelected = {{ gis_data['gisLineSelected']|safe }};
-    var gisPolygonAll = {{ gis_data['gisPolygonAll']|safe }};
-    var gisPolygonSelected = {{ gis_data['gisPolygonSelected']|safe }};
-    var gisPolygonPointSelected = {{ gis_data['gisPolygonPointSelected']|safe }};
-    var gisAllSelected = {{ gis_data['gisAllSelected']|safe }};
+    var geoNamesModule =     {{ 'true' if geonames_module else 'false' }};
+    var geoNamesUsername =  '{{ session.settings.geonames_username }}';
+    var gisPointAll =        {{ gis_data.gisPointAll|safe }};
+    var gisPointSupers =     {{ gis_data.gisPointSupers|safe }};
+    var gisPointSubs =       {{ gis_data.gisPointSubs|safe }};
+    var gisPointSibling =    {{ gis_data.gisPointSibling|safe }};
+    var gisPointSelected =   {{ gis_data.gisPointSelected|safe }};
+    var gisLineAll =         {{ gis_data.gisLineAll|safe }};
+    var gisLineSelected =    {{ gis_data.gisLineSelected|safe }};
+    var gisPolygonAll =      {{ gis_data.gisPolygonAll|safe }};
+    var gisPolygonSelected = {{ gis_data.gisPolygonSelected|safe }};
+    var gisPolygonPointSelected = {{ gis_data.gisPolygonPointSelected|safe }};
+    var gisAllSelected =    {{ gis_data.gisAllSelected|safe }};
     var jsonSearch = [];
     var translate = [];
-    var mapMaxZoom = {{ current_user.settings['map_zoom_max'] }}
-    var mapDefaultZoom = {{ current_user.settings['map_zoom_default'] }}
+    var mapMaxZoom             = {{ current_user.settings.map_zoom_max }}
+    var mapDefaultZoom         =  {{ current_user.settings.map_zoom_default }}
     var map_update_mode = false;  // enables e.g. edit buttons in popup ups if true
-    var maxClusterRadius = {{ session['settings']['map_cluster_max_radius'] }};
-    var disableClusteringAtZoom = {{ session['settings']['map_cluster_disable_at_zoom'] }};
-    translate['save'] = '{{ _('save')|uc_first|safe }}';
-    translate['edit'] = '{{ _('edit')|uc_first|safe }}';
-    translate['delete'] = '{{ _('delete')|uc_first|safe }}';
-    translate['details'] = '{{ _('details')|uc_first|safe }}';
-    translate['import'] = '{{ _('import')|uc_first|safe }}';
-    translate['map_clear'] = '{{ _('map_clear')|uc_first|safe }}';
-    translate['map_info_reedit'] = '{{ _('map_info_reedit')|uc_first|safe }}';
-    translate['map_info_shape'] = '{{ _('map_info_shape')|uc_first|safe }}';
-    translate['map_info_area'] = '{{ _('map_info_area')|uc_first|safe }}';
-    translate['map_info_centerpoint'] = '{{ _('map_info_point')|uc_first|safe }}';
-    translate['map_info_linestring'] = '{{ _('map_info_linestring')|uc_first|safe }}';
-    translate['map_info_close'] = '{{ _('map_info_close')|uc_first|safe }}';
-    translate['map_info_description'] = '{{ _('map_info_description')|safe }}';
-    translate['map_geonames_title'] = '{{ _('Search by location name or postcode')|safe }}';
-    translate['map_geonames_placeholder'] = '{{ _('Enter a location name')|safe }}';
+    var maxClusterRadius        = {{ session.settings.map_cluster_max_radius }};
+    var disableClusteringAtZoom = {{ session.settings.map_cluster_disable_at_zoom }};
+    translate.save    = '{{ _('save')|uc_first|safe }}';
+    translate.edit    = '{{ _('edit')|uc_first|safe }}';
+    translate.delete  = '{{ _('delete')|uc_first|safe }}';
+    translate.details = '{{ _('details')|uc_first|safe }}';
+    translate.import  = '{{ _('import')|uc_first|safe }}';
+    translate.map_clear =                '{{ _('map_clear')|uc_first|safe }}';
+    translate.map_info_reedit =          '{{ _('map_info_reedit')|uc_first|safe }}';
+    translate.map_info_shape =           '{{ _('map_info_shape')|uc_first|safe }}';
+    translate.map_info_area =            '{{ _('map_info_area')|uc_first|safe }}';
+    translate.map_info_centerpoint =     '{{ _('map_info_point')|uc_first|safe }}';
+    translate.map_info_linestring =      '{{ _('map_info_linestring')|uc_first|safe }}';
+    translate.map_info_close =           '{{ _('map_info_close')|uc_first|safe }}';
+    translate.map_info_description =     '{{ _('map_info_description')|safe }}';
+    translate.map_geonames_title =       '{{ _('Search by location name or postcode')|safe }}';
+    translate.map_geonames_placeholder = '{{ _('Enter a location name')|safe }}';
 
     overlays = [];
-    {% if current_user.settings['module_map_overlay'] and overlays is defined and overlays and overlays|length %}
+    {% if current_user.settings.module_map_overlay and overlays is defined and overlays and overlays|length %}
         overlays = [
             {% for image_id, overlay in overlays.items() %}
                 {
@@ -47,6 +47,7 @@
             {% endfor %}
         ];
     {% endif %}
+
 </script>
 <link rel="stylesheet" href="/static/vendor/leaflet-1.3.4/leaflet.css">
 <link rel="stylesheet" href="/static/vendor/leaflet-1.3.4/fullscreen/leaflet.fullscreen.css">

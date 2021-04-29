@@ -5,7 +5,6 @@ from flask_login import current_user
 
 from openatlas import app
 from openatlas.database.logger import Logger as Db
-from openatlas.models.imports import Import
 
 
 class Logger:
@@ -45,6 +44,7 @@ class Logger:
     @staticmethod
     def get_log_for_advanced_view(entity_id: str) -> Dict[str, Any]:
         from openatlas.models.user import User
+        from openatlas.models.imports import Import
         data = Db.get_log_for_advanced_view(entity_id)
         return {
             'creator': User.get_by_id(data['creator_id']) if data['creator_id'] else None,

@@ -27,9 +27,9 @@ class Table:
             'targets': [i for i, j in enumerate(self.header) if j in ['begin', 'end', 'size']]})
 
     def display(self, name: Optional[str] = 'default') -> str:
-        from openatlas.util.display import uc_first
         if not self.rows:
-            return Markup('<p>' + uc_first(_('no entries')) + '</p>')
+            from openatlas.util.util import uc_first
+            return Markup(f"<p>{uc_first(_('no entries'))}</p>")
         columns: List[Dict[str, str]] = [
             {'title': _(item).capitalize() if item else ''} for item in self.header]
         columns += [{'title': ''} for i in range(len(self.rows[0]) - len(self.header))]  # Add empty

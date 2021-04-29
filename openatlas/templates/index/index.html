@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block content %}
     {% if current_user.is_authenticated %}
-        {% if tables.overview['rows'] %}
+        {% if tables.overview.rows %}
             <div style="float:left;margin-right:2em;min-width: 500px;">
                 {{ tables.overview.display('overview')|safe }}
             </div>
@@ -9,11 +9,11 @@
         <div style="float:left; ">
             <div class="toolbar">
                 <p>
-                    <a class="{{ config['CSS']['button']['primary'] }}" href="/static/manual/index.html" target="_blank" rel="noopener noreferrer">
+                    <a class="{{ config.CSS.button.primary }}" href="/static/manual/index.html" target="_blank" rel="noopener noreferrer">
                         <i class="fas fa-book"></i> {{ _('manual')|uc_first }}
                     </a>
                     {{ _('model')|button(url_for('model_index')) }}
-                    <a class="{{ config['CSS']['button']['primary'] }}" href="{{ url_for('index', view='reference_system') }}">
+                    <a class="{{ config.CSS.button.primary }}" href="{{ url_for('index', view='reference_system') }}">
                         {{ _('reference system')|uc_first }}
                     </a>
                 </p>
@@ -21,7 +21,7 @@
                     {{ _('want a new feature or experience any problems')|uc_first }}:
                     {{ _('tell us about it')|button(url_for('index_feedback')) }}
                 </p>
-                {% if session['settings']['mail'] and not current_user.settings['newsletter'] %}
+                {% if session.settings.mail and not current_user.settings.newsletter %}
                     <p>
                         {{ _('want to receive updates? Activate the newsletter in your')|uc_first }}
                         {{ _('profile')|button(url_for('profile_index')) }}
@@ -36,10 +36,10 @@
             </div>
             <p style="font-size:0.8em;margin-top:1em;">
                 {{ _('hello')|uc_first }} {{ current_user.username }}.
-                {% if session['login_previous_success'] %}
-                    {{ _('last login')|uc_first }}: {{ session['login_previous_success'] }}
-                    {% if session['login_previous_failures'] > 0 %}
-                        - {{ _('failed logins')|uc_first }}: {{ session['login_previous_failures'] }}
+                {% if session.login_previous_success %}
+                    {{ _('last login')|uc_first }}: {{ session.login_previous_success }}
+                    {% if session.login_previous_failures > 0 %}
+                        - {{ _('failed logins')|uc_first }}: {{ session.login_previous_failures }}
                     {% endif %}
                 {% else %}
                     {{ _('first login') }}

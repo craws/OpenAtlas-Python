@@ -27,8 +27,6 @@ app.config['SWAGGER'] = {'openapi': '3.0.2', 'uiversion': 3}
 
 cors = CORS(app, resources={r"/api/*": {"origins": app.config['CORS_ALLOWANCE']}})
 api = Api(app, catch_all_404s=False, errors=errors)
-# swagger = Swagger(app, parse=False, template_file="api/v02/swagger.json")
-# swagger = Swagger(app, parse=False, template=template)
 
 api.add_resource(ClassMapping, '/api/0.2/classes/', endpoint='class_mapping')
 api.add_resource(GetByCode, '/api/0.2/code/<string:code>', endpoint="code")

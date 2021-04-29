@@ -1,5 +1,5 @@
 <span id="{{ field.id }}-button"
-    class="{{ config['CSS']['button']['secondary'] }}"
+    class="{{ config.CSS.button.secondary }}"
     onclick="$('#{{ field.id }}-modal').modal('show')">
         {{ _('change')|uc_first }}
 </span>
@@ -21,7 +21,7 @@
                 </h5>
                 <button
                     type="button"
-                    class="btn btn-outline-primary btn-sm"
+                    class="{{ config.CSS.button.primary }}"
                     data-dismiss="modal"
                     aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -31,7 +31,7 @@
             <div class="modal-footer">
                 <button
                     type="button"
-                    class="btn btn-outline-primary btn-sm"
+                    class="{{ config.CSS.button.primary }}"
                     data-dismiss="modal"
                     onclick="selectFromTableMulti('{{ field.id }}')">
                     {{ _('close')|uc_first }}

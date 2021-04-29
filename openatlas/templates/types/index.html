@@ -64,7 +64,7 @@
                                                         {% endfor %}
                                                     </p>
                                                 {% endif %}
-                                                {% if node.forms and node.name not in config['PROPERTY_TYPES'] %}
+                                                {% if node.forms and node.name not in config.PROPERTY_TYPES %}
                                                     {{ _('untyped entities')|uc_first }}:
                                                     <a href="{{ url_for('show_untyped_entities', id_=node.id) }}">{{ _('show') }}</a>
                                                 {% endif %}

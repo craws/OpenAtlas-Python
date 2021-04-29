@@ -11,9 +11,8 @@ from openatlas.database.connect import Transaction
 from openatlas.forms.form import build_form
 from openatlas.models.entity import Entity
 from openatlas.models.node import Node
-from openatlas.util.display import link, sanitize, uc_first
 from openatlas.util.table import Table
-from openatlas.util.util import required_group
+from openatlas.util.util import link, required_group, sanitize, uc_first
 
 
 @app.route('/hierarchy/insert/<param>', methods=['POST', 'GET'])

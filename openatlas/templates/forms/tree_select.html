@@ -12,7 +12,7 @@
     href="#"
     id="{{ field.id }}-clear"
     {% if not selection %}style="display: none;"{% endif %}
-    class="{{ config['CSS']['button']['secondary'] }}"
+    class="{{ config.CSS.button.secondary }}"
     onclick="clearSelect('{{ field.id }}');">
         {{ _('clear')|uc_first }}
 </a>
@@ -30,7 +30,7 @@
                 </h5>
                 <button
                     type="button"
-                    class="{{ config['CSS']['button']['primary'] }}"
+                    class="{{ config.CSS.button.primary }}"
                     data-dismiss="modal"
                     aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -47,7 +47,7 @@
             <div class="modal-footer">
                 <button
                     type="button"
-                    class="{{ config['CSS']['button']['primary'] }}"
+                    class="{{ config.CSS.button.primary }}"
                     data-dismiss="modal">
                         {{ _('close')|uc_first }}
                 </button>
@@ -68,7 +68,7 @@
         selectFromTree("{{ field.id }}", data.node.id, data.node.text);
     });
     $("#{{ field.id }}-tree-search").keyup(function() {
-        if (this.value.length >= {{ session['settings']['minimum_jstree_search'] }}) {
+        if (this.value.length >= {{ session.settings.minimum_jstree_search }}) {
             $("#{{ field.id }}-tree").jstree("search", $(this).val());
         }
         else if (this.value.length == 0) {

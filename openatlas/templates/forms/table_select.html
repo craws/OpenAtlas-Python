@@ -10,7 +10,7 @@
     onclick="$('#{{ field.id }}-modal').modal('show');">
 <a href="#"
     id="{{ field.id }}-clear"
-    class="{{ config['CSS']['button']['secondary'] }}"
+    class="{{ config.CSS.button.secondary }}"
     {% if not selection %}style="display: none;"{% endif %}
     onclick="clearSelect('{{ field.id }}');">
         {{ _('clear')|uc_first }}
@@ -27,7 +27,7 @@
                 <h5 class="modal-title">{{ _(field.id.replace('_', ' '))|uc_first }}</h5>
                 <button
                     type="button"
-                    class="{{ config['CSS']['button']['primary'] }}"
+                    class="{{ config.CSS.button.primary }}"
                     data-dismiss="modal"
                     aria-label="Close">
                         <span aria-hidden="true">&times;</span>
@@ -37,7 +37,7 @@
             <div class="modal-footer">
                 <button
                     type="button"
-                    class="{{ config['CSS']['button']['primary'] }}"
+                    class="{{ config.CSS.button.primary }}"
                     data-dismiss="modal">
                         {{ _('close')|uc_first }}
                 </button>

@@ -12,8 +12,7 @@ from openatlas.forms.form import build_form
 from openatlas.forms.util import get_link_type
 from openatlas.models.entity import Entity
 from openatlas.models.link import Link
-from openatlas.util.display import uc_first
-from openatlas.util.util import required_group
+from openatlas.util.util import required_group, uc_first
 
 
 @app.route('/relation/insert/<int:origin_id>', methods=['POST', 'GET'])

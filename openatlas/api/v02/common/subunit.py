@@ -9,13 +9,11 @@ from openatlas.api.v02.resources.parser import default_parser
 from openatlas.api.v02.templates.nodes import NodeTemplate
 from openatlas.models.entity import Entity
 from openatlas.models.place import get_structure
-from openatlas.util.util import api_access
 
 
 class GetSubunit(Resource):  # type: ignore
-    @api_access()  # type: ignore
-    # @swag_from("../swagger/subunit.yml", endpoint="subunit")
-    def get(self, id_: int) -> Union[Tuple[Resource, int], Response]:
+    @staticmethod
+    def get(id_: int) -> Union[Tuple[Resource, int], Response]:
         parser = default_parser.parse_args()
         node = {"nodes": GetSubunit.get_subunits(id_)}
         if parser['count']:
@@ -28,7 +26,7 @@ class GetSubunit(Resource):  # type: ignore
     @staticmethod
     def get_subunits(id_: int) -> List[Dict[str, Any]]:
         try:
-            entity = Entity.get_by_id(id_, nodes=True, aliases=True)
+            entity = Entity.get_by_id(id_, nodes=True)
         except Exception:
             raise EntityDoesNotExistError
         structure = get_structure(entity)

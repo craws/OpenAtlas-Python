@@ -8,7 +8,7 @@ from openatlas.database.gis import Gis as Db
 from openatlas.models.entity import Entity
 from openatlas.models.imports import Project
 from openatlas.models.node import Node
-from openatlas.util.display import sanitize
+from openatlas.util.util import sanitize
 
 
 class InvalidGeomException(Exception):

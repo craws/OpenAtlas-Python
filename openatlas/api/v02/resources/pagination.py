@@ -2,7 +2,7 @@ import itertools
 from typing import Any, Dict, List
 
 from openatlas.api.v02.resources.error import EntityDoesNotExistError, NoEntityAvailable
-from openatlas.api.v02.resources.geojson_entity import GeoJsonEntity
+from openatlas.api.v02.resources.linked_places import LinkedPlacesEntity
 from openatlas.models.entity import Entity
 
 
@@ -28,7 +28,7 @@ class Pagination:
             total = Pagination.get_shown_entities(total, parser)
         h = [i for i, x in enumerate(entities) if x.id == total[0]]
         entity_limit = [e for idx, e in enumerate(entities[h[0]:])]
-        entities_result = [GeoJsonEntity.get_entity(r, parser)
+        entities_result = [LinkedPlacesEntity.get_entity(r, parser)
                            for r in entity_limit[:int(parser['limit'])]]
         result = {
             "result": entities_result,

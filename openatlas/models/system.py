@@ -4,7 +4,7 @@ from flask import g
 from flask_babel import lazy_gettext as _
 
 from openatlas.models.model import CidocClass
-from openatlas.util.display import uc_first
+from openatlas.util.util import uc_first
 
 
 class SystemClass:

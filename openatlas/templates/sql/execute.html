@@ -1,12 +1,12 @@
 {% extends "layout.html" %}
 {% block content %}
-    {% if file_data['file'] %}
+    {% if file_data.file %}
         <div class="toolbar">
-            {{ _('latest backup')|uc_first }}: {{ file_data['file'] }}, {{ file_data['size'] }}
-            {{ _('download')|button(url_for('download_sql', filename=file_data['file'])) }}
+            {{ _('latest backup')|uc_first }}: {{ file_data.file }}, {{ file_data.size }}
+            {{ _('download')|button(url_for('download_sql', filename=file_data.file)) }}
         </div>
     {% endif %}
-    {% if file_data['backup_too_old'] %}
+    {% if file_data.backup_too_old %}
         <p>
             {{ _('There seems to be no recent backup, please make one') }} <a href="{{ url_for('export_sql') }}">{{ _('here') }}</a>.
         </p>

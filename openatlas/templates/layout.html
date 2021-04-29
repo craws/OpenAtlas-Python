@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ session['language'] }}">
+<html lang="{{ session.language }}">
 <head>
     <meta charset="UTF-8">
     <meta name="theme-color" content="#ffffff">
@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="/static/node_modules/jstree/dist/themes/default/style.min.css">
 
     <link rel="mask-icon" href="/static/safari-pinned-tab.svg">
-    <link rel="stylesheet" href="/static/css/style.css?v={{ config['VERSION'] }}">
+    <link rel="stylesheet" href="/static/css/style.css?v={{ config.VERSION }}">
 
     <script src="/static/node_modules/jquery/dist/jquery.min.js"></script>
     <script src="/static/node_modules/datatables.net/js/jquery.dataTables.min.js"></script>
@@ -33,22 +33,22 @@
     {% endif %}
     <script>
         bookmark_csrf_token = '{{ csrf_token() }}';
-        minimumPasswordLength = {{ session['settings']['minimum_password_length'] }};
+        minimumPasswordLength = {{ session.settings.minimum_password_length }};
         show = '{{ _('show')|uc_first }}';
         hide = '{{ _('hide')|uc_first }}';
         moreText = '{{ _('show more')|uc_first }}';
         lessText = '{{ _('show less')|uc_first }}';
         maxFileSize =
-        {{ session['settings']['file_upload_max_size'] }}
+        {{ session.settings.file_upload_max_size }}
     </script>
     <script src="/static/js/functions.js"></script>
     <script src="/static/js/forms.js"></script>
-    {% set js_translation_file = '/static/js/messages_' + session['language'] + '.js' %}
+    {% set js_translation_file = '/static/js/messages_' + session.language + '.js' %}
     {% if js_translation_file|test_file %}
         <script src="{{ js_translation_file }}"></script>
     {% endif %}
     <title>
-        {{ session['settings']['site_name'] }}
+        {{ session.settings.site_name }}
         {% if title %}
             - {{ title|uc_first }}
         {% elif entity %}
@@ -85,8 +85,8 @@
                 </div>
             {% endif %}
             <div class="btn-group btn-group-toggle">
-                {% for language in config['LANGUAGES'].keys()|sort %}
-                    {% if 'language' in session and session['language'] == language %}
+                {% for language in config.LANGUAGES.keys()|sort %}
+                    {% if 'language' in session and session.language == language %}
                         <span class="btn btn-secondary active btn-sm">{{ language|upper }}</span>
                     {% else %}
                         <a class="btn btn-secondary btn-sm" href="{{ url_for('set_locale', language=language) }}">{{ language|upper }}</a>
@@ -157,8 +157,8 @@
         <div class="breadcrumb">
             {{ crumbs|breadcrumb }}
             <div id="site-name-and-version">
-                {{ session['settings']['site_name'] }}
-                <a href="{{ url_for('index_changelog') }}">{{ config['VERSION'] }}</a>
+                {{ session.settings.site_name }}
+                <a href="{{ url_for('index_changelog') }}">{{ config.VERSION }}</a>
             </div>
         </div>
     </nav>

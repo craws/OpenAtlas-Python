@@ -6,7 +6,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField
 
 from openatlas import app
-from openatlas.util.display import get_file_extension
+from openatlas.util.util import get_file_extension
 
 
 class GlobalSearchForm(FlaskForm):  # type: ignore

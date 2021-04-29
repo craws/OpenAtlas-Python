@@ -10,9 +10,8 @@ from wtforms.validators import InputRequired
 from openatlas import app
 from openatlas.models.entity import Entity
 from openatlas.models.network import Network
-from openatlas.util.display import link, uc_first
 from openatlas.util.table import Table
-from openatlas.util.util import required_group
+from openatlas.util.util import link, required_group, uc_first
 
 
 class LinkCheckForm(FlaskForm):  # type: ignore

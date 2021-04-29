@@ -7,13 +7,11 @@ from openatlas.api.v02.resources.download import Download
 from openatlas.api.v02.resources.error import InvalidSubunitError
 from openatlas.api.v02.resources.parser import default_parser
 from openatlas.api.v02.templates.nodes import NodeTemplate
-from openatlas.util.util import api_access
 
 
 class GetNodeEntitiesAll(Resource):  # type: ignore
-    @api_access()  # type: ignore
-    # @swag_from("../swagger/nodes_all.yml", endpoint="node_entities_all")
-    def get(self, id_: int) -> Union[Tuple[Resource, int], Response]:
+    @staticmethod
+    def get(id_: int) -> Union[Tuple[Resource, int], Response]:
         parser = default_parser.parse_args()
         node = {"nodes": GetNodeEntitiesAll.get_node_all(id_)}
         if parser['count']:

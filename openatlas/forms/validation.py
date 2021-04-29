@@ -5,7 +5,7 @@ from flask_babel import lazy_gettext as _
 from flask_wtf import FlaskForm
 
 from openatlas.models.date import Date
-from openatlas.util.display import uc_first
+from openatlas.util.util import uc_first
 
 
 def validate(self: FlaskForm) -> bool:
@@ -58,14 +58,15 @@ def validate(self: FlaskForm) -> bool:
 
     # File
     if request.files:
-        file_ = request.files['file']
+        files = request.files.getlist('file')
         ext = session['settings']['file_upload_allowed_extension']
-        if not file_:  # pragma: no cover
-            self.file.errors.append(_('no file to upload'))
-            valid = False
-        elif not ('.' in file_.filename and file_.filename.rsplit('.', 1)[1].lower() in ext):
-            self.file.errors.append(_('file type not allowed'))
-            valid = False
+        for file_ in files:
+            if not file_:  # pragma: no cover
+                self.file.errors.append(_('no file to upload'))
+                valid = False
+            elif not ('.' in file_.filename and file_.filename.rsplit('.', 1)[1].lower() in ext):
+                self.file.errors.append(_('file type not allowed'))
+                valid = False
 
     # Super event
     if hasattr(self, 'event') and hasattr(self, 'event_id'):

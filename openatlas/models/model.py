@@ -4,7 +4,6 @@ from typing import Any, Dict, List
 
 from flask import g, session
 
-import openatlas
 from openatlas import app
 from openatlas.database.model import Model as Db
 
@@ -26,7 +25,8 @@ class CidocClass:
         return self.get_i18n()
 
     def get_i18n(self) -> str:
-        locale_session = openatlas.get_locale()
+        from openatlas import get_locale
+        locale_session = get_locale()
         if locale_session in self.i18n:
             return self.i18n[locale_session]
         locale_default = session['settings']['default_language']
@@ -63,7 +63,8 @@ class CidocProperty:
 
     @property
     def name(self) -> str:
-        locale_session = openatlas.get_locale()
+        from openatlas import get_locale
+        locale_session = get_locale()
         if locale_session in self.i18n:
             return self.i18n[locale_session]
         locale_default = session['settings']['default_language']
@@ -73,7 +74,8 @@ class CidocProperty:
 
     @property
     def name_inverse(self) -> str:
-        locale_session = openatlas.get_locale()
+        from openatlas import get_locale
+        locale_session = get_locale()
         if locale_session in self.i18n_inverse:
             return self.i18n_inverse[locale_session]
         locale_default = session['settings']['default_language']

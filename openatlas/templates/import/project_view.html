@@ -19,7 +19,7 @@
                         <p>{{ _('new import')|uc_first }}:</p>
                         <div class="toolbar">
                             {{ _('source')|button(url_for('import_data', project_id=project.id, class_='source')) }}
-                            {% for class_ in g.view_class_mapping['event'] + g.view_class_mapping['actor'] %}
+                            {% for class_ in g.view_class_mapping.event + g.view_class_mapping.actor %}
                                 {{ class_|button(url_for('import_data', project_id=project.id, class_=class_)) }}
                             {% endfor %}
                             {{ _('place')|button(url_for('import_data', project_id=project.id, class_='place')) }}

@@ -207,9 +207,9 @@ function selectFromTreeMulti(name, value_type = false) {
   $("#" + name).trigger('change');
 }
 
-function selectFromTable(element, table, id, name) {
+function selectFromTable(element, table, id) {
   $("#" + table).attr('value', id);
-  $("#" + table + "-button").val(name);
+  $("#" + table + "-button").val(element.innerText);
   $("#" + table + "-button").focus(); /* to refresh/fill button and remove validation errors */
   $("#" + table + "-clear").show();
   $('#' + table + '-modal').modal('hide');

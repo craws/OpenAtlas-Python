@@ -8,9 +8,8 @@ from flask_babel import lazy_gettext as _
 from flask_wtf import FlaskForm
 
 from openatlas import app
-from openatlas.models.entity import Entity
-from openatlas.util.display import uc_first
 from openatlas.database.node import Node as Db
+from openatlas.models.entity import Entity
 
 
 class Node(Entity):
@@ -44,6 +43,7 @@ class Node(Entity):
 
     @staticmethod
     def populate_subs(nodes: Dict[int, Node]) -> None:
+        from openatlas.util.util import uc_first
         forms = {}
         for row in Db.get_web_forms():
             forms[row['id']] = {

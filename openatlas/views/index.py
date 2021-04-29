@@ -15,9 +15,9 @@ from openatlas.models.content import Content
 from openatlas.models.entity import Entity
 from openatlas.models.user import User
 from openatlas.util.changelog import Changelog
-from openatlas.util.display import bookmark_toggle, format_date, link, uc_first
 from openatlas.util.table import Table
-from openatlas.util.util import required_group, send_mail
+from openatlas.util.util import (
+    bookmark_toggle, format_date, link, required_group, send_mail, uc_first)
 
 
 class FeedbackForm(FlaskForm):  # type: ignore

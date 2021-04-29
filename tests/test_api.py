@@ -9,6 +9,7 @@ from openatlas.models.entity import Entity
 from openatlas.models.gis import Gis
 from openatlas.models.node import Node
 from openatlas.models.reference_system import ReferenceSystem
+from tests import api_data
 from tests.base import TestBaseCase, insert_entity
 
 
@@ -85,37 +86,9 @@ class ApiTests(TestBaseCase):
                 #     assert data[key] == value
 
             # Test GeoJson output
+            self.maxDiff = None
             rv = self.app.get(url_for('entity', id_=place.id))
-            assert b'"@id": "http://local.host/entity/' in rv.data
-            assert b'"crmClass": "crm:E18 Physical Thing"' in rv.data
-            assert b'"title": "Nostromos"' in rv.data
-            assert b'"value": "That is the Nostromos"' in rv.data
-            # types
-            assert b'"identifier": "http://local.host/api/0.2/entity/102"' in rv.data
-            assert b'"label": "Height"' in rv.data
-            assert b'"hierarchy": "Dimensions"' in rv.data
-            assert b'"value": 23.0' in rv.data
-            # relations
-            assert b'"label": "Cargo hauler"' in rv.data
-            assert b'"relationTo": "http://local.host/api/0.2/entity/106"' in rv.data
-            assert b'"relationType": "crm:P1_is_identified_by"' in rv.data
-            assert b'"relationSystemClass": "appellation"' in rv.data
-            assert b'"relationSystemClass": "feature"' in rv.data
-            assert b'"relationSystemClass": "type"' in rv.data
-            assert b'"relationSystemClass": "object_location"' in rv.data
-            assert b'"relationSystemClass": "file"' in rv.data
-            assert b'"relationSystemClass": "reference_system"' in rv.data
-            assert b'"type": "close match"' in rv.data
-            # alias
-            assert b'"alias": "Cargo hauler"' in rv.data
-            # geometry
-            assert b'"type": "Point"' in rv.data
-            assert b'"coordinates": [' in rv.data
-            # depictions
-            assert b'"title": "Datei"' in rv.data
-            assert b'"license": "Open license"' in rv.data
-            # links
-            assert b'"identifier": "https://www.geonames.org/' in rv.data
+            self.assertEqual(rv.get_json(), api_data.api_place_entity)
 
             # Path Tests
             rv = self.app.get(url_for('usage'))

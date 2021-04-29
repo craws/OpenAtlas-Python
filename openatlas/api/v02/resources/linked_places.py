@@ -8,47 +8,60 @@ from openatlas.models.entity import Entity
 from openatlas.models.gis import Gis
 from openatlas.models.link import Link
 from openatlas.models.reference_system import ReferenceSystem
-from openatlas.util.display import get_file_path
+from openatlas.util.util import get_file_path
 
 
-class GeoJsonEntity:
+class LinkedPlacesEntity:
 
     @staticmethod
-    def get_links(entity: Entity) -> Optional[List[Dict[str, str]]]:
+    def get_all_links(entity: Entity) -> List[Link]:
         links = []
         for link in Link.get_links(entity.id, list(g.properties)):
-            links.append({
-                'label': link.range.name,
-                'relationTo': url_for('entity', id_=link.range.id, _external=True),
-                'relationType': 'crm:' + link.property.code + '_'
-                                + link.property.i18n['en'].replace(' ', '_'),
-                'relationSystemClass': link.range.class_.name,
-                'type': link.type.name if link.type else None,
-                'when': {'timespans': [GeoJsonEntity.get_time(link.range)]}})
-        for link in Link.get_links(entity.id, list(g.properties), inverse=True):
-            property_ = link.property.i18n['en'].replace(' ', '_')
-            if link.property.i18n_inverse['en']:
-                property_ = link.property.i18n_inverse['en'].replace(' ', '_')
-            links.append({
-                'label': link.domain.name,
-                'relationTo': url_for('entity', id_=link.domain.id, _external=True),
-                'relationType': 'crm:' + link.property.code + 'i_' + property_,
-                'relationSystemClass': link.domain.class_.name,
-                'type': link.type.name if link.type else None,
-                'when': {'timespans': [GeoJsonEntity.get_time(link.domain)]}})
-        return links if links else None
+            links.append(link)
+        return links
 
     @staticmethod
-    def get_file(entity: Entity) -> Optional[List[Dict[str, str]]]:
+    def get_all_links_inverse(entity: Entity) -> List[Link]:
+        links_inverse = []
+        for link in Link.get_links(entity.id, list(g.properties), inverse=True):
+            links_inverse.append(link)
+        return links_inverse
+
+    @staticmethod
+    def get_links(links: List[Link], links_inverse: List[Link]) -> Optional[List[Dict[str, str]]]:
+        out = []
+        for link in links:
+            out.append({
+                'label': link.range.name,
+                'relationTo': url_for('entity', id_=link.range.id, _external=True),
+                'relationType': 'crm:' + link.property.code + ' ' + link.property.i18n['en'],
+                'relationSystemClass': link.range.class_.name,
+                'type': link.type.name if link.type else None,
+                'when': {'timespans': [LinkedPlacesEntity.get_time(link.range)]}})
+        for link in links_inverse:
+            property_ = link.property.i18n['en']
+            if link.property.i18n_inverse['en']:
+                property_ = link.property.i18n_inverse['en']
+            out.append({
+                'label': link.domain.name,
+                'relationTo': url_for('entity', id_=link.domain.id, _external=True),
+                'relationType': 'crm:' + link.property.code + 'i ' + property_,
+                'relationSystemClass': link.domain.class_.name,
+                'type': link.type.name if link.type else None,
+                'when': {'timespans': [LinkedPlacesEntity.get_time(link.domain)]}})
+        return out if out else None
+
+    @staticmethod
+    def get_file(links_inverse: List[Link]) -> Optional[List[Dict[str, str]]]:
         files = []
-        for link in Link.get_links(entity.id, codes="P67", inverse=True):
+        for link in links_inverse:
             if link.domain.class_.name != 'file':
                 continue
             path = get_file_path(link.domain.id)
             files.append({
                 '@id': url_for('entity', id_=link.domain.id, _external=True),
                 'title': link.domain.name,
-                'license': GeoJsonEntity.get_license(link.domain),
+                'license': LinkedPlacesEntity.get_license(link.domain),
                 'url': url_for(
                     'display_file_api', filename=path.name, _external=True) if path else "N/A"})
         return files if files else None
@@ -62,13 +75,13 @@ class GeoJsonEntity:
         return file_license
 
     @staticmethod
-    def get_node(entity: Entity) -> Optional[List[Dict[str, Any]]]:
+    def get_node(entity: Entity, links: List[Link]) -> Optional[List[Dict[str, Any]]]:
         nodes = []
         for node in entity.nodes:
             nodes_dict = {
                 'identifier': url_for('entity', id_=node.id, _external=True),
                 'label': node.name}
-            for link in Link.get_links(entity.id, 'P2'):
+            for link in links:
                 if link.range.id == node.id and link.description:
                     nodes_dict['value'] = link.description
                     if link.range.id == node.id and node.description:
@@ -99,9 +112,9 @@ class GeoJsonEntity:
         return {'type': 'GeometryCollection', 'geometries': geoms}
 
     @staticmethod
-    def get_reference_systems(entity: Entity) -> Optional[List[Dict[str, Any]]]:
+    def get_reference_systems(links_inverse: List[Link]) -> Optional[List[Dict[str, Any]]]:
         ref = []
-        for link_ in Link.get_links(entity.id, codes="P67", inverse=True):
+        for link_ in links_inverse:
             if not isinstance(link_.domain, ReferenceSystem):
                 continue
             system = g.reference_systems[link_.domain.id]
@@ -136,21 +149,32 @@ class GeoJsonEntity:
             features['names'] = []
             for key, value in entity.aliases.items():
                 features['names'].append({"alias": value})
-        features['relations'] = GeoJsonEntity.get_links(entity) if 'relations' in parser[
-            'show'] else None
-        features['types'] = GeoJsonEntity.get_node(entity) if 'types' in parser['show'] else None
-        features['depictions'] = GeoJsonEntity.get_file(entity) if 'depictions' in parser[
-            'show'] else None
-        features['when'] = {'timespans': [GeoJsonEntity.get_time(entity)]} if 'when' in parser[
-            'show'] else None
-        features['links'] = GeoJsonEntity.get_reference_systems(entity) if 'links' in parser[
-            'show'] else None
+
+        links = []
+        links_inverse = []
+        if any(i in ['relations', 'types', 'depictions', 'links'] for i in parser['show']):
+            links = LinkedPlacesEntity.get_all_links(entity)
+            links_inverse = LinkedPlacesEntity.get_all_links_inverse(entity)
+
+        features['relations'] = \
+            LinkedPlacesEntity.get_links(links, links_inverse) if 'relations' in parser[
+                'show'] else None
+        features['types'] = \
+            LinkedPlacesEntity.get_node(entity, links) if 'types' in parser['show'] else None
+        features['depictions'] = \
+            LinkedPlacesEntity.get_file(links_inverse) if 'depictions' in parser['show'] else None
+        features['when'] = \
+            {'timespans': [LinkedPlacesEntity.get_time(entity)]} if 'when' in parser[
+                'show'] else None
+        features['links'] = LinkedPlacesEntity.get_reference_systems(links_inverse) if 'links' in \
+                                                                                       parser[
+                                                                                           'show'] else None
         if 'geometry' in parser['show']:
             if entity.class_.view == 'place' or entity.class_.name in ['find', 'artifact']:
-                features['geometry'] = GeoJsonEntity.get_geoms_by_entity(
+                features['geometry'] = LinkedPlacesEntity.get_geoms_by_entity(
                     Link.get_linked_entity(entity.id, 'P53'))
             elif entity.class_.name == 'object_location':
-                features['geometry'] = GeoJsonEntity.get_geoms_by_entity(entity)
+                features['geometry'] = LinkedPlacesEntity.get_geoms_by_entity(entity)
         return {
             'type': type_,
             '@context': app.config['API_SCHEMA'],

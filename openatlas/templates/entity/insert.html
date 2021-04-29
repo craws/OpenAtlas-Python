@@ -4,10 +4,10 @@
         {% if view_name == 'file' %}
             <p>
                 {{ _('max size')|uc_first }}:
-                <span style="font-weight: bold;">{{ session['settings']['file_upload_max_size'] }} MB</span>.
+                <span style="font-weight: bold;">{{ session.settings.file_upload_max_size }} MB</span>.
                 {{ _('if exceeded you will receive a connection error')|uc_first }}.
                 {{ _('allowed extensions')|uc_first }}:
-                <span style="font-weight: bold;">{{ ', '.join(session['settings']['file_upload_allowed_extension']) }}</span>
+                <span style="font-weight: bold;">{{ ', '.join(session.settings.file_upload_allowed_extension) }}</span>
             </p>
         {% endif %}
         {% if view_name == 'file' and not writeable %}

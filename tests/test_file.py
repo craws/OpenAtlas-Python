@@ -29,6 +29,12 @@ class FileTest(TestBaseCase):
                     data={'name': 'OpenAtlas logo', 'file': img},
                     follow_redirects=True)
             assert b'An entry has been created' in rv.data
+            with open(logo, 'rb') as img1, open(logo, 'rb') as img2:
+                rv = self.app.post(
+                    url_for('insert', class_='file', origin_id=actor.id),
+                    data={'name': 'OpenAtlas logo', 'file': [img1, img2]},
+                    follow_redirects=True)
+            assert b'An entry has been created' in rv.data
             with open(logo, 'rb') as img:
                 rv = self.app.post(
                     url_for('insert', class_='file', origin_id=reference.id),

@@ -4,7 +4,7 @@
     <script>
         $(document).ready(function () {
             $("#show_passwords").after(function() {
-                return '<span class="{{ config['CSS']['button']['primary'] }}" id="generate-password">{{ _('generate password')|uc_first }}</span>';
+                return '<span class="{{ config.CSS.button.primary }}" id="generate-password">{{ _('generate password')|uc_first }}</span>';
             });
         });
     </script>

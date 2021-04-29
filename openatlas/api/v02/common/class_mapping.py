@@ -4,13 +4,11 @@ from flask import Response
 from flask_restful import Resource, marshal
 
 from openatlas.api.v02.templates.class_mapping import ClassMappingTemplate
-from openatlas.util.util import api_access
 
 
 class ClassMapping(Resource):  # type: ignore
-    @api_access()  # type: ignore
-    # @swag_from("../swagger/class_mapping.yml", endpoint="class_mapping")
-    def get(self) -> Union[Tuple[Resource, int], Response]:
+    @staticmethod
+    def get() -> Union[Tuple[Resource, int], Response]:
         return marshal(ClassMapping.mapping, ClassMappingTemplate.class_mapping_template()), 200
 
     mapping = [

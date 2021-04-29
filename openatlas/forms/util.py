@@ -9,7 +9,7 @@ from flask_login import current_user
 from openatlas.forms.field import TreeField
 from openatlas.forms.setting import ProfileForm
 from openatlas.models.entity import Entity
-from openatlas.util.display import uc_first
+from openatlas.util.util import uc_first
 
 
 def get_link_type(form: Any) -> Optional_Type[Entity]:

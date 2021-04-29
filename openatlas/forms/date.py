@@ -6,8 +6,8 @@ from flask_wtf import FlaskForm
 from wtforms import IntegerField, StringField
 from wtforms.validators import NoneOf, NumberRange, Optional
 
-
 from openatlas.models.link import Link
+
 if TYPE_CHECKING:  # pragma: no cover - Type checking is disabled in tests
     from openatlas.models.entity import Entity
 

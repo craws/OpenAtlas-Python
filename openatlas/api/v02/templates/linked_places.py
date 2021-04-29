@@ -4,10 +4,10 @@ from flask_restful import fields
 from flask_restful.fields import List, String
 
 
-class GeoJson:
+class LinkedPlacesTemplate:
 
     @staticmethod
-    def geojson_template(show: Dict[str, str]) -> Dict[str, Type[String]]:
+    def linked_places_template(show: Dict[str, str]) -> Dict[str, Type[String]]:
         title = {
             'title': fields.String}
 
@@ -105,5 +105,5 @@ class GeoJson:
             "total_pages": fields.Integer}
 
         return {
-            "result": fields.List(fields.Nested(GeoJson.geojson_template(show))),
+            "result": fields.List(fields.Nested(LinkedPlacesTemplate.linked_places_template(show))),
             "pagination": fields.Nested(pagination_model)}

@@ -16,8 +16,7 @@ from openatlas import app, logger
 from openatlas.database.connect import Transaction
 from openatlas.forms.setting import DisplayForm, ModulesForm, ProfileForm
 from openatlas.forms.util import get_form_settings, set_form_settings
-from openatlas.util.display import uc_first
-from openatlas.util.util import is_authorized
+from openatlas.util.util import is_authorized, uc_first
 
 
 class PasswordForm(FlaskForm):  # type: ignore

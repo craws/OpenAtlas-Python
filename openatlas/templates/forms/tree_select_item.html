@@ -1,0 +1,18 @@
+<div id="{{ name }}-tree"></div>
+<script>
+    $(document).ready(function () {
+        $("#{{ name }}-tree").jstree({
+            "search": { "case_insensitive": true, "show_only_matches": true },
+            "plugins" : ["core", "html_data", "search"],
+            "core": { "data": {{ data|safe }} }
+        });
+        $("#{{ name }}-tree").on("select_node.jstree", function (e, data) {
+            document.location.href = data.node.original.href;
+        });
+        $("#{{ name }}-tree-search").keyup(function() {
+            if (this.value.length >= {{ session.settings.minimum_jstree_search }}) {
+                $("#{{ name }}-tree").jstree("search", $(this).val());
+            }
+        });
+    });
+</script>

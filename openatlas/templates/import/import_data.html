@@ -18,10 +18,10 @@
             {{ _('example files')|uc_first }}: <a href="/static/import/example.csv">example.csv</a>
         </p>
         {{ form|display_form(manual_page='admin/import') }}
-        {% for item in messages['error'] %}
+        {% for item in messages.error %}
             <span class="error">{{ _('error')|uc_first }} - {{ item }}</span><br>
         {% endfor %}
-        {% for item in messages['warn'] %}
+        {% for item in messages.warn %}
             <span class="error">{{ _('warning')|uc_first }} - {{ item }}</span><br>
         {% endfor %}
         {% if table %}

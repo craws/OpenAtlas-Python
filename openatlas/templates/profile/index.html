@@ -13,7 +13,7 @@
                 <div class="tab-pane fade show active" role="tabpanel" id="tab-profile">
                     <div class="toolbar">
                         {{ 'tools/profile'|manual }}
-                        {% if not config['DEMO_MODE'] %}
+                        {% if not config.DEMO_MODE %}
                             {{ _('edit')|button(url_for('profile_settings', category='profile')) }}
                             {{ _('change password')|button(url_for('profile_password')) }}
                         {% endif %}
@@ -26,7 +26,7 @@
                     <div class="tab-pane fade" role="tabpanel" id="tab-modules">
                         <div class="toolbar">
                             {{ 'tools/profile'|manual }}
-                            {% if not config['DEMO_MODE'] %}
+                            {% if not config.DEMO_MODE %}
                                 {{ _('edit')|button(url_for('profile_settings', category='modules')) }}
                             {% endif %}
                         </div>
@@ -38,7 +38,7 @@
                 <div class="tab-pane fade" role="tabpanel" id="tab-display">
                     <div class="toolbar">
                         {{ 'tools/profile'|manual }}
-                        {% if not config['DEMO_MODE'] %}
+                        {% if not config.DEMO_MODE %}
                             {{ _('edit')|button(url_for('profile_settings', category='display')) }}
                         {% endif %}
                     </div>

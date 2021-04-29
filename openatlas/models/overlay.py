@@ -8,7 +8,7 @@ from flask_wtf import FlaskForm
 from openatlas import app
 from openatlas.database.overlay import Overlay as Db
 from openatlas.models.entity import Entity
-from openatlas.util.display import get_file_path
+from openatlas.util.util import get_file_path
 
 
 class Overlay:
