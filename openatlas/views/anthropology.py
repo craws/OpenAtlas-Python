@@ -4,14 +4,12 @@ from flask import render_template, url_for
 from flask_babel import lazy_gettext as _
 from flask_wtf import FlaskForm
 from werkzeug.wrappers import Response
-from wtforms import SubmitField, SelectField
+from wtforms import SelectField, SubmitField
 
 from openatlas import app
 from openatlas.models.anthropology import SexEstimation
 from openatlas.models.entity import Entity
-from openatlas.models.node import Node
-from openatlas.util.display import uc_first
-from openatlas.util.util import required_group
+from openatlas.util.util import required_group, uc_first
 
 
 @app.route('/anthropology/index/<int:id_>')
@@ -68,4 +66,3 @@ def anthropology_sex_update(id_: int) -> Union[str, Response]:
             [_('anthropological analyzes'), url_for('anthropology_index', id_=entity.id)],
             [_('sex estimation'), url_for('anthropology_sex', id_=entity.id)],
             _('edit')])
-
