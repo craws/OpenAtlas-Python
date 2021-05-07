@@ -4,4 +4,7 @@
     {% if 'contributor'|is_authorized %}
         {{ _('edit')|button(url_for('anthropology_sex_update', id_=entity.id)) }}
     {% endif %}
+    {% for node, value in entity.nodes.items() %}
+        {{ node.name }} - {{ value }}<br>
+    {% endfor %}
 {% endblock %}
