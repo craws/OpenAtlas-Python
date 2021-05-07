@@ -1,0 +1,14 @@
+<li class="nav-item">
+    <a
+        class="nav-link {% if active %}active{% endif %}"
+        data-toggle="tab"
+        role="tab"
+        aria-selected="{% if active %}true{% else %}false{% endif %}"
+        href="#tab-{{ id|replace('_', '-') }}"
+    >
+        {{ _(id|replace('_', ' '))|uc_first }}
+        {% if table and table.rows|length %}
+            <span class="tab-counter">{{ '{0:,}'.format(table.rows|length) }}</span>
+        {% endif %}
+    </a>
+</li>

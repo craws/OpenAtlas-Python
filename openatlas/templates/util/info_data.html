@@ -1,0 +1,16 @@
+<div class="data-table">
+    {% for label, value in data.items() %}
+        {% if value or value == 0 %}
+            <div class="table-row">
+                <div>{{ label|uc_first }}</div>
+                <div class="table-cell">
+                    {% if value is iterable and value is not string %}
+                        {{ '<br>'.join(value)|safe }}
+                    {% else %}
+                        {{ value|safe }}
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    {% endfor %}
+</div>

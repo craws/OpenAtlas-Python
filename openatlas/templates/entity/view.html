@@ -6,18 +6,27 @@
                 {{ ('entity/' + entity.class_.view)|manual }}
                 {{ buttons|join(' ') }}
                 {{ entity.id|bookmark_toggle }}
-                {{ entity|download_button }}
+                {% if entity.class_.view == 'file' %}
+                    {% if entity.image_id %}
+                        {{ entity|download_button }}
+                    {% else %}
+                        <span class="error">{{ _("missing file")|uc_first }}</span>
+                    {% endif %}
+                {% endif %}
                 {{ entity|siblings_pager(structure) }}
             </div>
             <h1>{{ entity.name }}</h1>
             <div>
-                {{ entity|display_profile_image }}
+                {% if entity.image_id %}
+                    {{ entity|display_profile_image }}
+                {% endif %}
                 <div style="float:left;">
                     {{ entity.info_data|display_info }}
-                    {{ entity|display_external_references }}
-                    {{ entity|description }}
                 </div>
             </div>
+            <div style="clear:both;"></div>
+            {{ entity|display_external_references }}
+            {{ entity|description }}
         </div>
         {% if gis_data %}
             <div class="col-6">

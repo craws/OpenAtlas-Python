@@ -1,0 +1,11 @@
+<form
+    method="post"
+    {% if form_id %}
+        id="{{ form_id }}"
+    {% endif %}
+    {% if 'file' in form %}
+        enctype="multipart/form-data"
+    {% endif %}
+>
+    <div class="data-table">{{ html|safe }}</div>
+</form>

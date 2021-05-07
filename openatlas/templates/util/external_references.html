@@ -1,13 +1,15 @@
-<h2>{{ _("external reference systems")|uc_first }}</h2>
-{% for link in entity.reference_systems %}
-    {% set system = g.reference_systems[link.domain.id] %}
-    {% if system.resolver_url %}
-        <a href="{{ system.resolver_url + link.description }}" target="_blank" rel="noopener noreferrer">
+{% if entity.reference_systems %}
+    <h2>{{ _("external reference systems")|uc_first }}</h2>
+    {% for link in entity.reference_systems %}
+        {% set system = g.reference_systems[link.domain.id] %}
+        {% if system.resolver_url %}
+            <a href="{{ system.resolver_url + link.description }}" target="_blank" rel="noopener noreferrer">
+                {{ link.description }}
+            </a>
+        {% else %}
             {{ link.description }}
-        </a>
-    {% else %}
-        {{ link.description }}
-    {% endif %}
-    ({{ g.nodes[link.type.id].name }} {{ _('at') }} {{ link.domain|link|safe }})
-    <br>
-{% endfor %}
+        {% endif %}
+        ({{ g.nodes[link.type.id].name }} {{ _('at') }} {{ link.domain|link|safe }})
+        <br>
+    {% endfor %}
+{% endif %}

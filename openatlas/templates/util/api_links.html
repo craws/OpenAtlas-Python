@@ -1,0 +1,7 @@
+<a href=" {{ url_for('entity', id_=entity.id) }}" target="_blank">GeoJSON</a>
+<a class="{{ config.CSS.button.primary }}" href="{{ url_for('entity', id_=entity.id, download=True) }}">
+    <i class="fas fa-download"></i> {{ _('download')|uc_first }}
+</a>
+<a class="{{ config.CSS.button.primary }}" href="{{ url_for('entity', id_=entity.id, export='csv') }}">
+    <i class="fas fa-download"></i> CSV
+</a>

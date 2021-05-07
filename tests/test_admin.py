@@ -67,9 +67,7 @@ class ContentTests(TestBaseCase):
                 involvement.end_from = '2017-01-01'
                 involvement.update()
             rv = self.app.get(url_for('admin_check_dates'))
-            assert b'Invalid dates <span class="tab-counter">1' in rv.data
-            assert b'Invalid link dates <span class="tab-counter">1' in rv.data
-            assert b'Invalid involvement dates <span class="tab-counter">1' in rv.data
+            assert b'<span class="tab-counter">1</span>' in rv.data
 
     def test_duplicates(self) -> None:
         with app.app_context():  # type: ignore

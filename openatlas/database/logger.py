@@ -15,12 +15,12 @@ class Logger:
 
     @staticmethod
     def get_system_logs(limit: str, priority: str, user_id: str) -> List[Dict[str, Any]]:
-        sql = """
+        sql = f"""
             SELECT id, priority, type, message, user_id, info, created FROM web.system_log
-            WHERE priority <= %(priority)s"""
-        sql += ' AND user_id = %(user_id)s' if int(user_id) > 0 else ''
-        sql += ' ORDER BY created DESC'
-        sql += ' LIMIT %(limit)s' if int(limit) > 0 else ''
+            WHERE priority <= %(priority)s
+            {' AND user_id = %(user_id)s' if int(user_id) > 0 else ''}
+            ORDER BY created DESC
+            {' LIMIT %(limit)s' if int(limit) > 0 else ''};"""
         g.cursor.execute(sql, {'limit': limit, 'priority': priority, 'user_id': user_id})
         return [dict(row) for row in g.cursor.fetchall()]
 

@@ -31,12 +31,12 @@ class MemberTests(TestBaseCase):
             rv = self.app.post(
                 url_for('member_insert', origin_id=group.id, code='membership'),
                 data={'group': str([group.id])})
-            assert b"Can't link to itself" in rv.data
+            assert b"link to itself" in rv.data
             rv = self.app.post(
                 url_for('member_insert', origin_id=actor.id),
                 data={'actor': str([actor.id])},
                 follow_redirects=True)
-            assert b"Can't link to itself" in rv.data
+            assert b"link to itself" in rv.data
 
             # Add member to group
             data = {'actor': str([actor.id])}

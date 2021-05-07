@@ -4,10 +4,11 @@ from flask import g, render_template, url_for
 from flask_babel import format_number, lazy_gettext as _
 from flask_wtf import FlaskForm
 from wtforms import (
-    BooleanField, HiddenField, IntegerField, SelectMultipleField, StringField, SubmitField, widgets)
+    BooleanField, IntegerField, SelectMultipleField, StringField, SubmitField, widgets)
 from wtforms.validators import InputRequired
 
 from openatlas import app
+from openatlas.forms.field import TableField
 from openatlas.models.entity import Entity
 from openatlas.models.network import Network
 from openatlas.util.table import Table
@@ -15,52 +16,36 @@ from openatlas.util.util import link, required_group, uc_first
 
 
 class LinkCheckForm(FlaskForm):  # type: ignore
-    domain = HiddenField()
-    property = HiddenField()
-    range = HiddenField()
-    test = SubmitField(uc_first(_('test')))
+    cidoc_domain = TableField('Domain', [InputRequired()])
+    cidoc_property = TableField('Property', [InputRequired()])
+    cidoc_range = TableField('Range', [InputRequired()])
+    save = SubmitField(uc_first(_('test')))
 
 
 @app.route('/overview/model', methods=["GET", "POST"])
 @required_group('readonly')
 def model_index() -> str:
     form = LinkCheckForm()
-    form_classes = {}
-    for code, class_ in g.cidoc_classes.items():
-        form_classes[code] = code + ' ' + class_.name
-    form.domain.choices = form_classes.items()
-    form.range.choices = form_classes.items()
-    form_properties = {}
-    for code, property_ in g.properties.items():
-        form_properties[code] = code + ' ' + property_.name
-    form.property.choices = form_properties.items()
-    test_result = None
+    form_classes = {code: f'{code} {class_.name}' for code, class_ in g.cidoc_classes.items()}
+    form.cidoc_domain.choices = form_classes
+    form.cidoc_range.choices = form_classes
+    form.cidoc_property.choices = {
+        code: f'{code} {property_.name}' for code, property_ in g.properties.items()}
+    result = None
     if form.validate_on_submit():
-        domain = g.cidoc_classes[form.domain.data]
-        range_ = g.cidoc_classes[form.range.data]
-        property_ = g.properties[form.property.data]
-        domain_is_valid = property_.find_object('domain_class_code', domain.code)
-        range_is_valid = property_.find_object('range_class_code', range_.code)
-        test_result = {
+        domain = g.cidoc_classes[form.cidoc_domain.data]
+        range_ = g.cidoc_classes[form.cidoc_range.data]
+        property_ = g.properties[form.cidoc_property.data]
+        result = {
             'domain': domain,
             'property': property_,
             'range': range_,
-            'domain_error': False if domain_is_valid else True,
-            'range_error': False if range_is_valid else True}
-    else:
-        domain = g.cidoc_classes['E1']
-        property_ = g.properties['P1']
-        range_ = domain
-        form.domain.data = domain.code
-        form.property.data = property_.code
-        form.range.data = range_.code
+            'domain_valid': property_.find_object('domain_class_code', domain.code),
+            'range_valid': property_.find_object('range_class_code', range_.code)}
     return render_template(
         'model/index.html',
         form=form,
-        test_result=test_result,
-        domain=domain,
-        property=property_,
-        range=range_,
+        result=result,
         title=_('model'),
         crumbs=[_('model')])
 

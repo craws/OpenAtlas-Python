@@ -254,32 +254,26 @@ def populate_update_form(form: FlaskForm, entity: Union[Entity, Node]) -> None:
         form.artifact.data = [item.id for item in entity.get_linked_entities('P128', inverse=True)]
 
 
-def insert_file(
-        form: FlaskForm,
-        class_: Optional[str] = None,
-        origin: Optional[Entity] = None) -> Union[str, Response]:
+def insert_file(form: FlaskForm, origin: Optional[Entity] = None) -> Union[str, Response]:
     filenames = []
-    url = url_for('index', view=g.classes[class_].view)
+    url = url_for('index', view=g.classes['file'].view)
     try:
         Transaction.begin()
-        # Needed for static name.
-        entity_name = form.name.data
+        entity_name = form.name.data.strip()
         for count, file in enumerate(form.file.data):
-            entity = Entity.insert(class_, file.filename)
-            if count == 0:
-                url = link_and_get_redirect_url(form, entity, class_, origin)
-            else:
-                link_and_get_redirect_url(form, entity, class_, origin)
-            # Add an 'a' to prevent emtpy filename, this won't affect stored information
+            entity = Entity.insert('file', file.filename)
+            url = link_and_get_redirect_url(form, entity, 'file', origin)
+            # Add an 'a' to prevent emtpy temporary filename, this doesn't affect stored information
             filename = secure_filename('a' + file.filename)  # type: ignore
             new_name = f"{entity.id}.{filename.rsplit('.', 1)[1].lower()}"
             file.save(f"{app.config['UPLOAD_DIR']}/{new_name}")
             filenames.append(new_name)
             if len(form.file.data) > 1:
                 count = str(count + 1).zfill(2)
-                form.name.data = f'{entity_name.strip()}_{count}'
+                form.name.data = f'{entity_name}_{count}'
+                if origin:
+                    url = f"{url_for('entity_view', id_=origin.id)}#tab-file"
             entity.update(form)
-            class_ = entity.class_.name
             update_links(entity, form, 'insert', origin)
             logger.log_user(entity.id, 'insert')
         Transaction.commit()
@@ -290,7 +284,7 @@ def insert_file(
             (app.config['UPLOAD_DIR'] / filename).unlink()
         logger.log('error', 'database', 'transaction failed', e)
         flash(_('error transaction'), 'error')
-        url = url_for('index', view=g.classes[class_].view)
+        url = url_for('index', view=g.classes['file'].view)
     return url
 
 
@@ -299,7 +293,7 @@ def save(form: FlaskForm,
          class_: Optional[str] = None,
          origin: Optional[Entity] = None) -> Union[str, Response]:
     if class_ == 'file' and not entity:
-        return insert_file(form, class_, origin)
+        return insert_file(form, origin)
     Transaction.begin()
     action = 'update'
     try:

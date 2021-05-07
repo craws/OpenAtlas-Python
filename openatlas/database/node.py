@@ -58,7 +58,7 @@ class Node:
     @staticmethod
     def get_form_choices() -> List[Dict[str, Union[int, str]]]:
         g.cursor.execute(
-            "SELECT f.id, f.name FROM web.form f WHERE f.extendable = True ORDER BY name ASC")
+            "SELECT f.id, f.name FROM web.form f WHERE f.extendable = True ORDER BY name ASC;")
         return [dict(row) for row in g.cursor.fetchall()]
 
     @staticmethod

@@ -3,7 +3,12 @@
     <form class="table" id="checkbox-form" method="post">
         {{ form.csrf_token }}
         {{ form.checkbox_values }}
-        {{ form|display_move_form(root.name)|safe }}
+        <p>{{ root.name }} {{ form[root.id|string] }}</p>
+        <div class="toolbar">
+            {{ _('select all')|button(id_='select-all') }}
+            {{ _('deselect all')|button(id_='select-none') }}
+        </div>
+        {{ table.display('move') }}
         {{ form.save(class_=config.CSS.button.primary) }}
     </form>
     <script>

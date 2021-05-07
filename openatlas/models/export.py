@@ -91,7 +91,7 @@ class Export:
 
     @staticmethod
     def export_sql() -> bool:
-        """Creates pg_dump file in export/sql folder, filename begins with current date_time."""
+        """Creates pg_dump file in export/sql folder, filename begins with current date_time"""
         file = app.config['EXPORT_DIR'] / 'sql' / (Date.current_date_for_filename() + '_dump.sql')
         if os.name == 'posix':
             command = """pg_dump -h {host} -d {database} -U {user} -p {port} -f {file}""".format(
@@ -106,7 +106,8 @@ class Export:
                     shell=True,
                     stdin=subprocess.PIPE,
                     env={'PGPASSWORD': app.config['DATABASE_PASS']}).wait()
-                subprocess.Popen(['7z', 'a', str(file) + '.7z', file]).wait()
+                with open(os.devnull, 'w') as null:
+                    subprocess.Popen(['7z', 'a', f'{file}.7z', file], stdout=null).wait()
                 file.unlink()
             except Exception:  # pragma: no cover
                 return False

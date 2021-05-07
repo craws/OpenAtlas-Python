@@ -302,7 +302,7 @@ def admin_orphans() -> str:
         'circular': Table(['entity']),
         'nodes': Table(['name', 'root']),
         'orphaned_files': Table(['name', 'size', 'date', 'ext'])}
-    tables['circular'].rows = [[link(entity)] for entity in Entity.get_circular()]
+    tables['circular'].rows = [[link(entity)] for entity in Entity.get_entities_linked_to_itself()]
     for entity in Entity.get_orphans():
         if isinstance(entity, ReferenceSystem):
             continue

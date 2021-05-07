@@ -1,5 +1,3 @@
-from typing import Any, Dict
-
 from flask import url_for
 
 from openatlas import app
@@ -21,11 +19,13 @@ class ModelTests(TestBaseCase):
             assert b'P1' in rv.data
             rv = self.app.get(url_for('property_view', code='P68'))
             assert b'P68' in rv.data
-            data: Dict[str, Any] = {'domain': 'E1', 'range': 'E1', 'property': 'P13'}
-            rv = self.app.post(url_for('model_index'), data=data)
+            rv = self.app.post(
+                url_for('model_index'),
+                data={'cidoc_domain': 'E1', 'cidoc_range': 'E1', 'cidoc_property': 'P13'})
             assert b'Wrong domain' in rv.data
-            data = {'domain': 'E1', 'range': 'E1', 'property': 'P67'}
-            self.app.post(url_for('model_index'), data=data)
+            self.app.post(
+                url_for('model_index'),
+                data={'cidoc_domain': 'E1', 'cidoc_range': 'E1', 'cidoc_property': 'P67'})
 
             with app.test_request_context():  # Insert data to display in network view
                 app.preprocess_request()  # type: ignore

@@ -20,40 +20,27 @@
         <p style="font-weight: bold;">
             {{ _('check for valid links')|uc_first }}
         </p>
-        <form method="post">
-            {{ form.csrf_token }}
-            {% set data = {
-                form.domain.label: form.domain|string + 'domain'|table_select_model(domain),
-                form.property.label: form.property|string + 'property'|table_select_model(property),
-                form.range.label: form.range|string + 'range'|table_select_model(range)
-            } %}
-            {{ data|display_info }}
-            <div class="toolbar">
-                {{ form.test(class_=config.CSS.button.primary) }}
-            </div>
-        </form>
-        {% if test_result %}
+        {{ form|display_form() }}
+        {% if result %}
             <p style="margin-top:1em;">
                 {{ _('result for')|uc_first }}
-                {{ test_result.domain|link|safe }} >
-                {{ test_result.property|link|safe }} >
-                {{ test_result.range|link|safe }}
+                {{ result.domain|link|safe }} >
+                {{ result.property|link|safe }} >
+                {{ result.range|link|safe }}
             </p>
-            {% if not test_result.domain_error and not test_result.range_error %}
+            {% if result.domain_valid and result.range_valid %}
                 <p>{{ _('valid link')|uc_first }}<br>
-            {% endif %}
-            {% if test_result.domain_error %}
+            {% elif not result.domain_valid %}
                 <p>
                     <span class="error">{{ _('wrong domain')|uc_first }}</span>
-                    {{ test_result.domain|link|safe }} {{ _('for') }}
-                    {{ test_result.property|link|safe }}
+                    {{ result.domain|link|safe }} {{ _('for') }}
+                    {{ result.property|link|safe }}
                 </p>
-            {% endif %}
-            {% if test_result.range_error %}
+            {% elif not result.range_valid %}
                 <p>
                     <span class="error">{{ _('wrong range')|uc_first }}</span>
-                    {{ test_result.range|link|safe }} {{ _('for') }}
-                    {{ test_result.property|link|safe }}
+                    {{ result.range|link|safe }} {{ _('for') }}
+                    {{ result.property|link|safe }}
                 </p>
             {% endif %}
         {% endif %}

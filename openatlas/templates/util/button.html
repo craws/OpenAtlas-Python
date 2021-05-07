@@ -1,0 +1,26 @@
+{% if url %}
+    <a
+        href="{{ url }}"
+        class="{{ config['CSS']['button'][css] }}"
+        {% if id_ %}
+            id="{{ id_ }}"
+        {% endif %}
+        {% if js %}
+            onclick="{{ js }}"
+        {% endif %}
+    >
+        {{ label }}
+    </a>
+{% else %}
+    <span
+        class="{{ config['CSS']['button'][css] }}"
+        {% if id_ %}
+            id="{{ id_ }}"
+        {% endif %}
+        {% if js %}
+            onclick="{{ js }}"
+        {% endif %}
+    >
+        {{ label }}
+    </span>
+{% endif %}

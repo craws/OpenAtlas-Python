@@ -1,0 +1,16 @@
+<div id="profile-image-div">
+    {% set url = url_for('display_file', filename=path.name) %}
+    {% if entity.class_.view == 'file' %}
+        {% if path.suffix.lower() in config.DISPLAY_FILE_EXTENSIONS %}
+            <a href="{{ url }}" rel="noopener noreferrer" target="_blank">
+                <img style="max-width:{{ session.settings.profile_image_width }}px;" alt="image" src="{{ url }}">
+            </a>
+        {% else %}
+            {{ _('no preview available')|uc_first }}
+        {% endif %}
+    {% else %}
+        <a href="{{ url_for('entity_view', id_=entity.image_id) }}">
+            <img style="max-width:{{ session.settings.profile_image_width }}px;" alt="image" src="{{ url }}">
+        </a>
+    {% endif %}
+</div>

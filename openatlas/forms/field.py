@@ -52,21 +52,32 @@ class ValueFloatField(FloatField):  # type: ignore
 class TableSelect(HiddenInput):  # type: ignore
 
     def __call__(self, field: TableField, **kwargs: Any) -> TableSelect:
-        aliases = current_user.settings['table_show_aliases']
-        if field.id in ['residence', 'begins_in', 'ends_in', 'place_to', 'place_from']:
-            class_ = 'place'
-            entities = Entity.get_by_class('place', nodes=True, aliases=aliases)
-        else:
-            class_ = field.id
-            entities = Entity.get_by_view(class_, nodes=True, aliases=aliases)
-        table = Table(g.table_headers[class_])
+
         selection = ''
-        for entity in entities:
-            if field.data and entity.id == int(field.data):
-                selection = entity.name
-            data = get_base_table_data(entity, show_links=False)
-            data[0] = self.format_name_and_aliases(entity, field.id)
-            table.rows.append(data)
+        if field.id in ('cidoc_domain', 'cidoc_property', 'cidoc_range'):
+            entities = g.properties if field.id == 'cidoc_property' else g.cidoc_classes
+            table = Table(['code', 'name'], defs=[
+                {'orderDataType': 'cidoc-model', 'targets': [0]},
+                {'sType': 'numeric', 'targets': [0]}])
+            for id_, entity in entities.items():
+                js = f"selectFromTable(this,'{field.id}','{id_}','{entity.code} {entity.name}');"
+                table.rows.append([f'<a onclick="{js}" href="#">{entity.code}</a>', entity.name])
+        else:
+            aliases = current_user.settings['table_show_aliases']
+            if 'place' in field.id or field.id in ['begins_in', 'ends_in', 'residence']:
+                class_ = 'place'
+                entities = Entity.get_by_class('place', nodes=True, aliases=aliases)
+            else:
+                class_ = field.id
+                entities = Entity.get_by_view(class_, nodes=True, aliases=aliases)
+            table = Table(g.table_headers[class_])
+            selection = ''
+            for entity in entities:
+                if field.data and entity.id == int(field.data):
+                    selection = entity.name
+                data = get_base_table_data(entity, show_links=False)
+                data[0] = self.format_name_and_aliases(entity, field.id)
+                table.rows.append(data)
         html = render_template(
             'forms/table_select.html',
             field=field,
@@ -102,7 +113,7 @@ class TreeMultiSelect(HiddenInput):  # type: ignore
             'forms/tree_multi_select.html',
             field=field,
             root=g.nodes[int(field.id)],
-            selection=sorted([g.nodes[id_].name for id_ in data]) ,
+            selection=sorted([g.nodes[id_].name for id_ in data]),
             data=Node.get_tree_data(int(field.id), data))
         return super(TreeMultiSelect, self).__call__(field, **kwargs) + html
 

@@ -1,0 +1,41 @@
+<div class="table-row">
+    <div>
+        <label>{{ _('date')|uc_first }}</label> {{ _('tooltip date')|tooltip|safe }}
+    </div>
+    <div class="table-cell date-switcher">
+        {{ label|button(id_='date-switcher', css='secondary') }}
+    </div>
+</div>
+<div class="table-row date-switch" style="{{ style }}">
+    <div>{{ _('begin')|uc_first }}</div>
+    <div class="table-cell">
+        {{ form.begin_year_from(class_='year')   }} {{ errors['begin_year_from']|safe }}
+        {{ form.begin_month_from(class_='month') }} {{ errors['begin_month_from']|safe }}
+        {{ form.begin_day_from(class_='day')     }} {{ errors['begin_day_from']|safe }}
+        {{ form.begin_comment }}
+    </div>
+</div>
+<div class="table-row date-switch" style="{{ style }}">
+    <div></div>
+    <div class="table-cell">
+        {{ form.begin_year_to(class_='year')   }} {{ errors['begin_year_to']|safe }}
+        {{ form.begin_month_to(class_='month') }} {{ errors['begin_month_to']|safe }}
+        {{ form.begin_day_to(class_='day')     }} {{ errors['begin_day_to']|safe }}
+    </div>
+</div>
+<div class="table-row date-switch" style="{{ style }}">
+    <div>{{ _('end')|uc_first }}</div>
+    <div class="table-cell">
+        {{ form.end_year_from(class_='year')   }} {{ errors['end_year_from']|safe }}
+        {{ form.end_month_from(class_='month') }} {{ errors['end_month_from']|safe }}
+        {{ form.end_day_from(class_='day')     }} {{ errors['end_day_from']|safe }}
+        {{ form.end_comment }}
+    </div>
+</div>
+<div class="table-row date-switch" style="{{ style }}">
+    <div></div><div class="table-cell">
+        {{ form.end_year_to(class_='year')   }} {{ errors['end_year_to']|safe }}
+        {{ form.end_month_to(class_='month') }} {{ errors['end_month_to']|safe }}
+        {{ form.end_day_to(class_='day')     }} {{ errors['end_day_to']|safe }}
+    </div>
+</div>

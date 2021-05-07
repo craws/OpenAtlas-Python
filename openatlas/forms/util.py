@@ -41,7 +41,7 @@ def get_form_settings(form: Any, profile: bool = False) -> Dict[str, str]:
         if field.type in ['StringField', 'IntegerField']:
             settings[label] = value
         if field.type == 'BooleanField':
-            settings[label] = _('on') if value else _('off')
+            settings[label] = str(_('on')) if value else str(_('off'))  # str() needed for templates
         if field.type == 'SelectField':
             if isinstance(value, str) and value.isdigit():
                 value = int(value)

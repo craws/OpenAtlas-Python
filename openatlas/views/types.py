@@ -11,7 +11,7 @@ from openatlas.forms.form import build_move_form
 from openatlas.models.entity import Entity
 from openatlas.models.node import Node
 from openatlas.util.table import Table
-from openatlas.util.util import link, required_group, sanitize
+from openatlas.util.util import link, required_group, sanitize, uc_first
 
 
 def walk_tree(nodes: List[int]) -> List[Dict[str, Any]]:
@@ -91,10 +91,12 @@ def node_move_entities(id_: int) -> Union[str, Response]:
     getattr(form, str(root.id)).data = node.id
     return render_template(
         'types/move.html',
-        node=node,
+        table=Table(
+            header=['#', uc_first(_('selection'))],
+            rows=[[item, item.label.text] for item in form.selection]),
         root=root,
         form=form,
-        title=_('types'),
+        entity=node,
         crumbs=[[_('types'), url_for('node_index')], root, node, _('move entities')])
 
 

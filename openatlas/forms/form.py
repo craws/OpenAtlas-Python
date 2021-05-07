@@ -170,23 +170,20 @@ def add_buttons(
             and (name in ['involvement', 'find', 'human_remains', 'type'] or not origin):
         setattr(form, 'insert_and_continue', SubmitField(uc_first(_('insert and continue'))))
         setattr(form, 'continue_', HiddenField())
-    insert_and_add = uc_first(_('insert and add')) + ' '
+    insert_add = uc_first(_('insert and add')) + ' '
     if name == 'place':
         setattr(form, 'insert_and_continue', SubmitField(uc_first(_('insert and continue'))))
         setattr(form, 'continue_', HiddenField())
-        setattr(form, 'insert_continue_sub', SubmitField(insert_and_add + _('feature')))
+        setattr(form, 'insert_continue_sub', SubmitField(insert_add + _('feature')))
     elif name == 'feature' and origin and origin.class_.name == 'place':
         setattr(form, 'insert_and_continue', SubmitField(uc_first(_('insert and continue'))))
         setattr(form, 'continue_', HiddenField())
-        setattr(form, 'insert_continue_sub', SubmitField(insert_and_add + _('stratigraphic unit')))
+        setattr(form, 'insert_continue_sub', SubmitField(insert_add + _('stratigraphic unit')))
     elif name == 'stratigraphic_unit':
         setattr(form, 'insert_and_continue', SubmitField(uc_first(_('insert and continue'))))
         setattr(form, 'continue_', HiddenField())
-        setattr(form, 'insert_continue_sub', SubmitField(insert_and_add + _('find')))
-        setattr(
-            form,
-            'insert_continue_human_remains',
-            SubmitField(insert_and_add + _('human remains')))
+        setattr(form, 'insert_continue_sub', SubmitField(insert_add + _('find')))
+        setattr(form, 'insert_continue_human_remains', SubmitField(insert_add + _('human remains')))
     return form
 
 

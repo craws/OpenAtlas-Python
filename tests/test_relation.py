@@ -53,7 +53,7 @@ class RelationTests(TestBaseCase):
                 url_for('relation_insert', origin_id=related.id),
                 data=data,
                 follow_redirects=True)
-            assert b"Can't link to itself." in rv.data
+            assert b"link to itself" in rv.data
 
             # Relation types
             rv = self.app.get(url_for('node_move_entities', id_=relation_sub_id))

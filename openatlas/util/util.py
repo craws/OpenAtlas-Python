@@ -344,6 +344,7 @@ def send_mail(
     return True
 
 
+@app.template_filter()
 def tooltip(text: str) -> str:
     if not text:
         return ''
@@ -360,9 +361,8 @@ def was_modified(form: FlaskForm, entity: 'Entity') -> bool:  # pragma: no cover
     return True
 
 
-# Todo: fix first appearance date comparison, continue with rest of util
 def get_appearance(event_links: List['Link']) -> Tuple[str, str]:
-    # Get first/last appearance from events for actors without begin/end
+    # Get first/last appearance year from events for actors without begin/end
     first_year = None
     last_year = None
     first_string = ''
@@ -374,17 +374,21 @@ def get_appearance(event_links: List['Link']) -> Tuple[str, str]:
         if not actor.first:
             if link_.first and (not first_year or int(link_.first) < int(first_year)):
                 first_year = link_.first
-                first_string = f"{format_entity_date(link_, 'begin', link_.object_)} {_('*at an')} {event_link}"
+                first_string = f"{format_entity_date(link_, 'begin', link_.object_)}"
+                first_string += f" {_('at an')} {event_link}"
             elif event.first and (not first_year or int(event.first) < int(first_year)):
                 first_year = event.first
-                first_string = f"{format_entity_date(event, 'begin', link_.object_)} {_('at an')} {event_link}"
+                first_string = f"{format_entity_date(event, 'begin', link_.object_)}"
+                first_string += f" {_('at an')} {event_link}"
         if not actor.last:
             if link_.last and (not last_year or int(link_.last) > int(last_year)):
                 last_year = link_.last
-                last_string = f"{format_entity_date(event, 'end', link_.object_)} {_('at an')} {event_link}"
+                last_string = f"{format_entity_date(link_, 'end', link_.object_)}"
+                last_string += f" {_('at an')} {event_link}"
             elif event.last and (not last_year or int(event.last) > int(last_year)):
                 last_year = event.last
-                last_string = f"{format_entity_date(event, 'end', link_.object_)} {_('at an')} {event_link}"
+                last_string = f"{format_entity_date(event, 'end', link_.object_)}"
+                last_string += f" {_('at an')} {event_link}"
     return first_string, last_string
 
 
@@ -404,42 +408,24 @@ def get_file_path(entity: Union[int, 'Entity']) -> Optional[Path]:
 
 
 def add_reference_systems_to_form(form: Any) -> str:
-    fields = []
-    for field in form:
-        if field.id.startswith('reference_system_id_'):
-            fields.append(field)
     html = ''
     switch_class = ''
+    fields = [field for field in form if field.id.startswith('reference_system_id_')]
     if len(fields) > 3:  # pragma: no cover
-        switch_class = 'reference-systems-switch'
-        html = f"""
-            <div class="table-row">
-                <div>
-                    <label>{uc_first(_('reference systems'))}</label>
-                </div>
-                <div class="table-cell reference-systems-switcher">
-                    <span
-                        id="reference-systems-switcher"
-                        class="{app.config['CSS']['button']['secondary']}">
-                            {uc_first(_('show'))}
-                    </span>
-                </div>
-            </div>"""
+        switch_class = 'reference-system-switch'
+        html = render_template('util/reference_system_switch.html')
     for field in fields:
         precision_field = getattr(form, field.id.replace('id_', 'precision_'))
         class_ = field.label.text if field.label.text in ['GeoNames', 'Wikidata'] else ''
-        html += add_row(
+        html += add_form_row(
             field,
             field.label,
-            ' '.join([
-                str(field(class_=class_)),
-                str(precision_field.label),
-                str(precision_field)]),
-            row_css_class='external-reference ' + switch_class)
+            ' '.join([str(field(class_=class_)), str(precision_field.label), str(precision_field)]),
+            row_css=f'external-reference {switch_class}')
     return html
 
 
-def add_dates_to_form(form: Any, for_person: bool = False) -> str:
+def add_dates_to_form(form: Any) -> str:
     errors = {}
     valid_dates = True
     for field_name in [
@@ -450,55 +436,16 @@ def add_dates_to_form(form: Any, for_person: bool = False) -> str:
         errors[field_name] = ''
         if getattr(form, field_name).errors:
             valid_dates = False
-            errors[field_name] = '<label class="error">'
+            errors[field_name] = ''
             for error in getattr(form, field_name).errors:
                 errors[field_name] += uc_first(error)
-            errors[field_name] += ' </label>'
-    html = """
-        <div class="table-row">
-            <div>
-                <label>{date}</label> {tooltip}
-            </div>
-            <div class="table-cell date-switcher">
-                <span id="date-switcher" class="{button_class}">{show}</span>
-            </div>
-        </div>""".format(
-        date=uc_first(_('date')),
-        button_class=app.config['CSS']['button']['secondary'],
-        tooltip=tooltip(_('tooltip date')),
-        show=uc_first(
-            _('hide') if form.begin_year_from.data or form.end_year_from.data else _('show')))
-
-    style = '' if valid_dates else ' style="display:table-row" '
-    html += '<div class="table-row date-switch" ' + style + '>'
-    html += '<div>' + uc_first(_('birth') if for_person else _('begin')) + '</div>'
-    html += '<div class="table-cell">'
-    html += str(form.begin_year_from(class_='year')) + ' ' + errors['begin_year_from'] + ' '
-    html += str(form.begin_month_from(class_='month')) + ' ' + errors['begin_month_from'] + ' '
-    html += str(form.begin_day_from(class_='day')) + ' ' + errors['begin_day_from'] + ' '
-    html += str(form.begin_comment)
-    html += '</div></div>'
-    html += '<div class="table-row date-switch" ' + style + '>'
-    html += '<div></div><div class="table-cell">'
-    html += str(form.begin_year_to(class_='year')) + ' ' + errors['begin_year_to'] + ' '
-    html += str(form.begin_month_to(class_='month')) + ' ' + errors['begin_month_to'] + ' '
-    html += str(form.begin_day_to(class_='day')) + ' ' + errors['begin_day_to'] + ' '
-    html += '</div></div>'
-    html += '<div class="table-row date-switch" ' + style + '>'
-    html += '<div>' + uc_first(_('death') if for_person else _('end')) + '</div>'
-    html += '<div class="table-cell">'
-    html += str(form.end_year_from(class_='year')) + ' ' + errors['end_year_from'] + ' '
-    html += str(form.end_month_from(class_='month')) + ' ' + errors['end_month_from'] + ' '
-    html += str(form.end_day_from(class_='day')) + ' ' + errors['end_day_from'] + ' '
-    html += str(form.end_comment)
-    html += '</div></div>'
-    html += '<div class="table-row date-switch"' + style + '>'
-    html += '<div></div><div class="table-cell">'
-    html += str(form.end_year_to(class_='year')) + ' ' + errors['end_year_to'] + ' '
-    html += str(form.end_month_to(class_='month')) + ' ' + errors['end_month_to'] + ' '
-    html += str(form.end_day_to(class_='day')) + ' ' + errors['end_day_to'] + ' '
-    html += '</div></div>'
-    return html
+            errors[field_name] = f'<label class="error">{errors[field_name]}</label>'
+    return render_template(
+        'util/dates.html',
+        form=form,
+        errors=errors,
+        style='' if valid_dates else 'display:table-row',
+        label=_('hide') if form.begin_year_from.data or form.end_year_from.data else _('show'))
 
 
 def print_file_size(entity: 'Entity') -> str:
@@ -520,94 +467,55 @@ def external_url(url: Union[str, None]) -> str:
 
 
 def add_system_data(entity: Entity, data: Dict[str, Any]) -> Dict[str, Any]:
-    from openatlas import logger
-    # Add additional information for entity views (if activated in profile)
+    """Add additional information for entity views if activated in profile"""
     if not hasattr(current_user, 'settings'):
         return data  # pragma: no cover
-    info = logger.get_log_for_advanced_view(entity.id)
     if 'entity_show_class' in current_user.settings and current_user.settings['entity_show_class']:
         data[_('class')] = link(entity.cidoc_class)
+    info = logger.get_log_for_advanced_view(entity.id)
     if 'entity_show_dates' in current_user.settings and current_user.settings['entity_show_dates']:
-        data[_('created')] = format_date(entity.created) + ' ' + link(info['creator'])
+        data[_('created')] = f"{format_date(entity.created)} {link(info['creator'])}"
         if info['modified']:
-            html = format_date(info['modified']) + ' ' + link(info['modifier'])
-            data[_('modified')] = html
+            data[_('modified')] = f"{format_date(info['modified'])} {link(info['modifier'])}"
     if 'entity_show_import' in current_user.settings:
         if current_user.settings['entity_show_import']:
             data[_('imported from')] = link(info['project'])
             data[_('imported by')] = link(info['importer'])
             data['origin ID'] = info['origin_id']
     if 'entity_show_api' in current_user.settings and current_user.settings['entity_show_api']:
-        data_api = f'<a href="{url_for("entity", id_=entity.id)}" target="_blank">GeoJSON</a>'
-        data_api += '''
-            <a class="{css}" href="{url}" target="_blank" title="Download">
-                <i class="fas fa-download"></i> {label}
-            </a>'''.format(
-            css=app.config['CSS']['button']['primary'],
-            url=url_for('entity', id_=entity.id, download=True),
-            label=uc_first('download'))
-        data_api += '''
-            <a class="{css}" href="{url}" target="_blank" title="CSV">
-                <i class="fas fa-download"></i> {label}
-            </a>'''.format(
-            css=app.config['CSS']['button']['primary'],
-            url=url_for('entity', id_=entity.id, export='csv'),
-            label=uc_first('csv'))
-        data['API'] = data_api
-    return data
-
-
-def add_type_data(entity: 'Entity', data: OrderedDict[str, Any]) -> Dict[str, Any]:
-    if entity.location:
-        entity.nodes.update(entity.location.nodes)  # Add location types
-    type_data: OrderedD[str, Any] = OrderedDict()
-    sorted_nodes = sorted(entity.nodes.items(), key=lambda x: x[0].name)
-    for node, node_value in sorted_nodes:
-        root = g.nodes[node.root[-1]]
-        label = _('type') if root.standard and root.class_.name == 'type' else root.name
-        if root.name not in type_data:
-            type_data[label] = []
-        text = ''
-        if root.value_type:  # Text for value types
-            text = ': {value} <span style="font-style:italic;">{description}</span>'.format(
-                value=format_number(node_value), description=description)
-        type_data[label].append('<span title="{path}">{link}</span>{text}'.format(
-            link=link(node),
-            path=' > '.join([g.nodes[id_].name for id_ in node.root]),
-            text=text))
-
-    # Sort root types and move standard type to top
-    type_data = OrderedDict(sorted(type_data.items()))
-    for item in type_data.keys():
-        if item == _('type'):
-            type_data.move_to_end(item, last=False)
-            break
-
-    for root_name, nodes in type_data.items():
-        data[root_name] = nodes
-
+        data['API'] = render_template('util/api_links.html', entity=entity)
     return data
 
 
 def convert_size(size_bytes: int) -> str:
     if size_bytes == 0:
-        return "0B"  # pragma: no cover
+        return "0 B"  # pragma: no cover
     size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
     i = int(math.floor(math.log(size_bytes, 1024)))
-    return "%s %s" % (int(size_bytes / math.pow(1024, i)), size_name[i])
+    return f"{int(size_bytes / math.pow(1024, i))} {size_name[i]}"
 
 
 def delete_link(name: str, url: str) -> str:
-    return link(
-        _('delete'),
-        url=url,
-        js="return confirm('{x}')".format(x=_('Delete %(name)s?', name=name.replace("'", ''))))
+    confirm = _('Delete %(name)s?', name=name.replace("'", ''))
+    return link(_('delete'), url=url, js=f"return confirm('{confirm}')")
 
 
-def add_edit_link(data: List[Any], url: str) -> List[Any]:
+def add_edit_link(data: List[Any], url: str) -> None:
     if is_authorized('contributor'):
         data.append(link(_('edit'), url))
-    return data
+
+
+def add_remove_link(
+        data: List[Any],
+        name: str,
+        link_: Link,
+        origin: Entity,
+        tab_: str) -> None:
+    if is_authorized('contributor'):
+        data.append(link(
+            _('remove'),
+            url_for('link_delete', id_=link_.id, origin_id=origin.id) + '#tab-' + tab_,
+            js="return confirm('{x}')".format(x=_('Remove %(name)s?', name=name.replace("'", '')))))
 
 
 def display_delete_link(entity: Entity) -> str:
@@ -619,23 +527,6 @@ def display_delete_link(entity: Entity) -> str:
         url = url_for('index', view=entity.class_.view, delete_id=entity.id)
     confirm = _('Delete %(name)s?', name=entity.name.replace('\'', ''))
     return button(_('delete'), url, onclick=f"return confirm('{confirm}')")
-
-
-def add_remove_link(
-        data: List[Any],
-        name: str,
-        link_: Link,
-        origin: Entity,
-        tab_: str) -> List[Any]:
-    if is_authorized('contributor'):
-        data.append(link(
-            _('remove'),
-            url_for('link_delete', id_=link_.id, origin_id=origin.id) + '#tab-' + tab_,
-            js="return confirm('{x}')".format(x=_('Remove %(name)s?', name=name.replace("'", '')))))
-    return data
-
-
-paragraph_re = re.compile(r'(?:\r\n|\r|\n){2,}')
 
 
 @app.template_filter()
@@ -674,21 +565,15 @@ def link(object_: Any,
 @app.template_filter()
 def button(
         label: str,
-        url: Optional[str] = '#',
+        url: Optional[str] = None,
         css: Optional[str] = 'primary',
         id_: Optional[str] = None,
-        onclick: Optional[str] = '') -> str:
+        onclick: Optional[str] = None) -> str:
     label = uc_first(label)
     if url and '/insert' in url and label != uc_first(_('link')):
-        label = '+ ' + label
-    html = '<{tag} class="{class_}" {url} {id} {onclick}>{label}</{tag}>'.format(
-        tag='a' if url else 'span',
-        class_=app.config['CSS']['button'][css],
-        url='href="{url}"'.format(url=url) if url else '',
-        label=label,
-        id='id="' + id_ + '"' if id_ else '',
-        onclick='onclick="{onclick}"'.format(onclick=onclick) if onclick else '')
-    return Markup(html)
+        label = f'+ {label}'
+    return Markup(
+        render_template('util/button.html', label=label, url=url, css=css, id_=id_, js=onclick))
 
 
 @app.template_filter()
@@ -714,13 +599,12 @@ def siblings_pager(entity: Entity, structure: Optional[Dict[str, Any]]) -> str:
             next_id = sibling.id
             position = counter
             break
-    return Markup(
-        '{previous} {next} {position} {of_label} {count}'.format(
-            previous=button('<', url_for('entity_view', id_=prev_id)) if prev_id else '',
-            next=button('>', url_for('entity_view', id_=next_id)) if next_id else '',
-            position=position,
-            of_label=_('of'),
-            count=len(structure['siblings'])))
+    return Markup(render_template(
+        'util/siblings_pager.html',
+        prev_id=prev_id,
+        next_id=next_id,
+        position=position,
+        structure=structure))
 
 
 @app.template_filter()
@@ -741,9 +625,8 @@ def breadcrumb(crumbs: List[Any]) -> str:
 
 
 @app.template_filter()
-def tab_header(item: str, table: Optional[Table] = None, active: Optional[bool] = False) -> str:
-    from openatlas.util import tab
-    return Markup(tab.tab_header(item, table, active))
+def tab_header(id_: str, table: Optional[Table] = None, active: Optional[bool] = False) -> str:
+    return Markup(render_template('util/tab_header.html', active=active, id=id_, table=table))
 
 
 @app.template_filter()
@@ -753,94 +636,33 @@ def uc_first(string: str) -> str:
 
 @app.template_filter()
 def display_info(data: Dict[str, Union[str, List[str]]]) -> str:
-    html = '<div class="data-table">'
-    for label, value in data.items():
-        if value or value == 0:
-            if isinstance(value, list):
-                value = '<br>'.join(value)
-            html += f"""
-                <div class="table-row">
-                    <div>{uc_first(label)}</div>
-                    <div class="table-cell">{value}</div>
-                </div>"""
-    return Markup(html + '</div>')
+    return Markup(render_template('util/info_data.html', data=data))
 
 
-@app.template_filter()
-def display_move_form(form: Any, root_name: str) -> str:
-    from openatlas.forms.field import TreeField
-    html = ''
-    for field in form:
-        if isinstance(field, TreeField):
-            html += '<p>' + root_name + ' ' + str(field) + '</p>'
-    table = Table(
-        header=['#', uc_first(_('selection'))],
-        rows=[[item, item.label.text] for item in form.selection])
-    return html + f"""
-        <div class="toolbar">
-            {button(_('select all'), id_='select-all')}
-            {button(_('deselect all'), id_='select-none')}
-        </div>
-        {table.display('move')}"""
+def add_type_data(entity: 'Entity', data: OrderedDict[str, Any]) -> None:
+    if entity.location:
+        entity.nodes.update(entity.location.nodes)  # Add location types
 
+    type_data: OrderedD[str, Any] = OrderedDict()
+    for node, value in sorted(entity.nodes.items(), key=lambda x: x[0].name):
+        root = g.nodes[node.root[-1]]
+        label = _('type') if root.standard and root.class_.name == 'type' else root.name
+        if root.name not in type_data:
+            type_data[label] = []
+        type_data[label].append(render_template(
+            'util/type_data_entry.html',
+            node=node,
+            value=format_number(value) if root.value_type else None,
+            title=' > '.join(reversed([g.nodes[id_].name for id_ in node.root]))))
 
-@app.template_filter()
-def table_select_model(name: str, selected: Union[CidocClass, CidocProperty, None] = None) -> str:
-    if name in ['domain', 'range']:
-        entities = g.cidoc_classes
-    else:
-        entities = g.properties
-    table = Table(['code', 'name'], defs=[
-        {'orderDataType': 'cidoc-model', 'targets': [0]},
-        {'sType': 'numeric', 'targets': [0]}])
+    type_data = OrderedDict(sorted(type_data.items()))
+    for item in type_data.keys():  # Sort root types and move standard type to top
+        if item == _('type'):
+            type_data.move_to_end(item, last=False)
+            break
 
-    for id_ in entities:
-        table.rows.append([
-            """
-                <a onclick="selectFromTable(this, '{name}', '{entity_id}', '{value}')"
-                    href="#">{label}</a>""".format(
-                name=name,
-                entity_id=id_,
-                value=entities[id_].code + ' ' + entities[id_].name,
-                label=entities[id_].code),
-            """
-                <a onclick="selectFromTable(this, '{name}', '{entity_id}', '{value}')"
-                    href="#">{label}</a>""".format(
-                name=name,
-                entity_id=id_,
-                value=entities[id_].code + ' ' + entities[id_].name,
-                label=entities[id_].name)])
-    value = selected.code + ' ' + selected.name if selected else ''
-    html = """
-        <input id="{name}-button" name="{name}-button" class="table-select" type="text"
-            onfocus="this.blur()" readonly="readonly" value="{value}"
-            onclick="$('#{name}-modal').modal('show')">
-            <div id="{name}-modal" class="modal fade" tabindex="-1" role="dialog"
-                aria-hidden="true">
-                <div class="modal-dialog" role="document" style="max-width: 100%!important;">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">{name}</h5>
-                            <button type="button" class="{css}"
-                                data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">{table}</div>
-                        <div class="modal-footer">
-                            <button type="button" class="{css}" data-dismiss="modal">
-                                {close_label}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>""".format(
-        css=app.config['CSS']['button']['primary'],
-        name=name,
-        value=value,
-        close_label=uc_first(_('close')),
-        table=table.display(name))
-    return html
+    for root_name, nodes in type_data.items():
+        data[root_name] = nodes
 
 
 @app.template_filter()
@@ -858,51 +680,27 @@ def description(entity: Union[Entity, Project]) -> str:
 
 @app.template_filter()
 def download_button(entity: Entity) -> str:
-    if entity.class_.view != 'file':
-        return ''
-    html = f'<span class="error">{uc_first(_("missing file"))}</span>'
-    if entity.image_id:
-        path = get_file_path(entity.image_id)
-        html = button(_('download'), url_for('download_file', filename=path.name))
-    return Markup(html)
+    return Markup(button(
+        _('download'),
+        url_for('download_file', filename=get_file_path(entity.image_id).name)))
 
 
 @app.template_filter()
 def display_profile_image(entity: Entity) -> str:
-    if not entity.image_id:
-        return ''
     path = get_file_path(entity.image_id)
-    if not path:
-        return ''  # pragma: no cover
-    if entity.class_.view == 'file':
-        if path.suffix.lower() in app.config['DISPLAY_FILE_EXTENSIONS']:
-            html = """
-                <a href="{url}" rel="noopener noreferrer" target="_blank">
-                    <img style="max-width:{width}px;" alt="image" src="{url}">
-                </a>""".format(
-                url=url_for('display_file', filename=path.name),
-                width=session['settings']['profile_image_width'])
-        else:
-            html = uc_first(_('no preview available'))  # pragma: no cover
-    else:
-        html = """
-            <a href="{url}">
-                <img style="max-width:{width}px;" alt="image" src="{src}">
-            </a>""".format(
-            url=url_for('entity_view', id_=entity.image_id),
-            src=url_for('display_file', filename=path.name),
-            width=session['settings']['profile_image_width'])
-    return Markup(f'<div id="profile_image_div">{html}</div>')
+    if path:
+        return Markup(render_template('util/profile_image.html', entity=entity, path=path))
+    return ''  # pragma: no cover
 
 
 @app.template_filter()
 def display_content_translation(text: str) -> str:
-    from openatlas.models.content import Content
     return Content.get_translation(text)
 
 
 @app.template_filter()
-def manual(site: str) -> str:  # Creates a link to a manual page
+def manual(site: str) -> str:
+    """If the manual page exists, return the link to it"""
     parts = site.split('/')
     if len(parts) < 2:
         return ''
@@ -913,64 +711,38 @@ def manual(site: str) -> str:  # Creates a link to a manual page
         # print('Missing manual link: ' + str(path))
         return ''
     return Markup(f"""
-        <a class="manual"
-            href="/static/manual/{site}.html"
-            target="_blank"
-            title="{uc_first('manual')}">
-                <i class="fas fa-book"></i>
-        </a>""")
+        <a class="manual" href="/static/manual/{site}.html" target="_blank"
+            title="{uc_first('manual')}"><i class="fas fa-book"></i></a>""")
 
 
-def add_row(
+def add_form_row(
         field: Field,
         label: Optional[str] = None,
         value: Optional[str] = None,
         form_id: Optional[str] = None,
-        row_css_class: Optional[str] = '') -> str:
+        row_css: Optional[str] = '') -> str:
     field.label.text = uc_first(field.label.text)
-    if field.flags.required and form_id != 'login-form' and field.label.text:
+    if field.flags.required and field.label.text and form_id != 'login-form':
         field.label.text += ' *'
-
-    # CSS
-    css_class = 'required' if field.flags.required else ''
-    css_class += ' integer' if isinstance(field, IntegerField) else ''
+    field_css = 'required' if field.flags.required else ''
+    field_css += ' integer' if isinstance(field, IntegerField) else ''
     for validator in field.validators:
-        css_class += ' email' if isinstance(validator, Email) else ''
-    errors = ' <span class="error">{errors}</span>'.format(
-        errors=' '.join(uc_first(error) for error in field.errors)) if field.errors else ''
-    return """
-        <div class="table-row {css_row}">
-            <div>{label} {tooltip}</div>
-            <div class="table-cell">{value} {errors}</div>
-        </div>""".format(
-        label=label if isinstance(label, str) else field.label,
-        tooltip=tooltip(field.description),
-        value=value if value else field(class_=css_class).replace('> ', '>'),
-        css_row=row_css_class,
-        errors=errors)
+        field_css += ' email' if isinstance(validator, Email) else ''
+    return render_template(
+        'forms/form_row.html',
+        field=field,
+        label=label,
+        value=value,
+        field_css=field_css,
+        row_css=row_css)
 
 
 @app.template_filter()
 def display_form(
         form: Any,
         form_id: Optional[str] = None,
-        for_persons: bool = False,
         manual_page: Optional[str] = None) -> str:
     from openatlas.forms.field import ValueFloatField
-
-    def display_value_type_fields(node_: 'Node', root: Optional['Node'] = None) -> str:
-        root = root if root else node_
-        html_ = ''
-        for sub_id in node_.subs:
-            sub = g.nodes[sub_id]
-            field_ = getattr(form, str(sub_id))
-            html_ += f"""
-                <div class="table-row value-type-switch{root.id}">
-                    <div>{sub.name}</div>
-                    <div class="table-cell">{field_(class_='value-type')} {sub.description}</div>
-                </div>
-                {display_value_type_fields(sub, root)}"""
-        return html_
 
     reference_systems_added = False
     html = ''
@@ -983,7 +755,7 @@ def display_form(
             continue
         if field.id.split('_', 1)[0] in ('begin', 'end'):  # If it's a date field use a function
             if field.id == 'begin_year_from':
-                html += add_dates_to_form(form, for_persons)
+                html += add_dates_to_form(form)
             continue
 
         if field.type in ['TreeField', 'TreeMultiField']:
@@ -996,12 +768,18 @@ def display_form(
                 label = uc_first(_('super'))
             if node.value_type and 'is_node_form' not in form:
                 field.description = node.description
-                onclick = f'switch_value_type({node.id})'
-                html += add_row(field, label, button(_('show'), onclick=onclick, css='secondary'))
-                html += display_value_type_fields(node)
+                html += add_form_row(
+                    field,
+                    label,
+                    button(
+                        _('show'),
+                        onclick=f'switch_value_type({node.id})',
+                        css='secondary',
+                        id_=f'value-type-switcher-{node.id}'))
+                html += display_value_type_fields(form, node)
                 continue
             tooltip_ = '' if 'is_node_form' in form else ' ' + tooltip(node.description)
-            html += add_row(field, label + tooltip_)
+            html += add_form_row(field, label + tooltip_)
             continue
 
         if field.id == 'save':
@@ -1017,7 +795,10 @@ def display_form(
                 buttons.append(form.insert_continue_sub(class_=class_))
             if 'insert_continue_human_remains' in form:
                 buttons.append(form.insert_continue_human_remains(class_=class_))
-            html += add_row(field, '', f'<div class ="toolbar">{" ".join(buttons)}</div>')
+            html += add_form_row(
+                field,
+                label='',  # Setting this to '' keeps the button row label empty
+                value=f'<div class="toolbar">{" ".join(buttons)}</div>')
             continue
 
         if field.id.startswith('reference_system_id_'):
@@ -1025,15 +806,23 @@ def display_form(
                 html += add_reference_systems_to_form(form)
                 reference_systems_added = True
             continue
-        html += add_row(field, form_id=form_id)
+        html += add_form_row(field, form_id=form_id)
+    return Markup(render_template('forms/form.html', form_id=form_id, form=form, html=html))
 
-    return Markup("""
-        <form method="post" {id} {multi}>
-            <div class="data-table">{html}</div>
-        </form>""".format(
-        id=('id="' + form_id + '" ') if form_id else '',
-        html=html,
-        multi='enctype="multipart/form-data"' if hasattr(form, 'file') else ''))
+
+def display_value_type_fields(form: Any, node_: 'Node', root: Optional['Node'] = None) -> str:
+    root = root if root else node_
+    html = ''
+    for sub_id in node_.subs:
+        sub = g.nodes[sub_id]
+        field = getattr(form, str(sub_id))
+        html += f"""
+            <div class="table-row value-type-switch{root.id}">
+                <div>{sub.name}</div>
+                <div class="table-cell">{field(class_='value-type')} {sub.description}</div>
+            </div>
+            {display_value_type_fields(form, sub, root)}"""
+    return html
 
 
 class MLStripper(HTMLParser):

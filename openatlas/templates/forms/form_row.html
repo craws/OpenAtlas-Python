@@ -1,0 +1,24 @@
+<div class="table-row {{ row_css }}">
+    <div>
+        {% if label is string %}
+            {{ label|safe }}
+        {% else %}
+            {{ field.label|safe }}
+        {% endif %}
+        {{ field.description|tooltip|safe }}
+    </div>
+    <div class="table-cell">
+        {% if value %}
+            {{ value|safe }}
+        {% else %}
+            {{ field(class_=field_css)|replace('> ', '>')|safe }}
+        {% endif %}
+        {% if field.errors %}
+            <span class="error">
+                {% for error in field.errors %}
+                    {{ error|uc_first }}
+                {% endfor %}
+            </span>
+        {% endif %}
+    </div>
+</div>

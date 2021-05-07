@@ -146,7 +146,7 @@ class Entity:
             'end_to': Date.datetime64_to_timestamp(self.end_to),
             'begin_comment': str(self.begin_comment).strip() if self.begin_comment else None,
             'end_comment': str(self.end_comment).strip() if self.end_comment else None,
-            'description': sanitize(self.description, 'text')})
+            'description': sanitize(self.description, 'text') if self.description else None})
 
     def update_aliases(self, form: FlaskForm) -> None:
         if not hasattr(form, 'alias'):
@@ -321,13 +321,9 @@ class Entity:
         similar: Dict[int, Any] = {}
         already_added: Set[int] = set()
         entities = Entity.get_by_class(form.classes.data)
-        for sample in entities:
-            if sample.id in already_added:
-                continue
+        for sample in filter(lambda x: x.id not in already_added, entities):
             similar[sample.id] = {'entity': sample, 'entities': []}
-            for entity in entities:
-                if sample.id == entity.id:
-                    continue
+            for entity in filter(lambda x: x.id != sample.id, entities):
                 if fuzz.ratio(sample.name, entity.name) >= form.ratio.data:
                     already_added.add(sample.id)
                     already_added.add(entity.id)
@@ -351,5 +347,5 @@ class Entity:
         Db.set_profile_image(id_, origin_id)
 
     @staticmethod
-    def get_circular() -> List[Entity]:  # Get entities that are linked to itself.
+    def get_entities_linked_to_itself() -> List[Entity]:
         return [Entity.get_by_id(row['domain_id']) for row in Db.get_circular()]
