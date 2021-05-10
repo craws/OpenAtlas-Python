@@ -29,131 +29,131 @@ class SexEstimation:
                 'male': 'prominent, projecting'},
             'Arcus superciliaris': {
                 'value': 2,
-                'female': '',
-                'male': ''},
+                'female': 'slight',
+                'male': 'prominent'},
             'Tuber frontalis and parietalis': {
                 'value': 2,
-                'female': '',
-                'male': ''},
+                'female': 'marked',
+                'male': 'reduced or absent'},
             'Inclinatio frontalis': {
                 'value': 1,
-                'female': '',
-                'male': ''},
+                'female': 'vertical',
+                'male': 'inclined posteriorly'},
             'Processus mastoideus': {
                 'value': 3,
-                'female': '',
-                'male': ''},
+                'female': 'small, inflected below vault',
+                'male': 'large, vertical or everted'},
             'Relief of planum nuchale': {
                 'value': 3,
-                'female': '',
-                'male': ''},
+                'female': 'smooth',
+                'male': 'ridged'},
             'Protuberantia occipitalis externa': {
                 'value': 2,
-                'female': '',
-                'male': ''},
+                'female': 'small',
+                'male': 'large'},
             'Processus zygomaticus': {
                 'value': 3,
-                'female': '',
-                'male': ''},
+                'female': 'narrow',
+                'male': 'broad'},
             'Os zygomaticum': {
                 'value': 2,
-                'female': '',
-                'male': ''},
+                'female': 'short, smooth lower margin',
+                'male': 'tall, roughened lower margin'},
             'Crista supramastoideum': {
                 'value': 2,
-                'female': '',
-                'male': ''},
+                'female': 'short',
+                'male': 'long, extending posteriorly'},
             'Margo supraorbitalis': {
                 'value': 1,
-                'female': '',
-                'male': ''},
+                'female': 'sharp edges',
+                'male': 'rounded edges'},
             'Shape of orbita': {
                 'value': 1,
-                'female': '',
-                'male': ''}},
+                'female': 'circular',
+                'male': 'quadrangular'}},
         'Mandible': {
             'Overall apperence': {
                 'value': 3,
-                'female': '',
-                'male': ''},
+                'female': 'grazil',
+                'male': 'pronounced'},
             'Mentum': {
                 'value': 2,
-                'female': '',
-                'male': ''},
+                'female': 'small and rounded',
+                'male': 'large and projecting'},
             'Angulus': {
                 'value': 1,
-                'female': '',
-                'male': ''},
+                'female': 'obtuse',
+                'male': 'perpendicular'},
             'Margo inferior (M2)': {
                 'value': 1,
-                'female': '',
-                'male': ''},
+                'female': 'thin',
+                'male': 'thick'},
             'Angle': {
                 'value': 1,
-                'female': '',
-                'male': ''}},
+                'female': 'smooth edges',
+                'male': 'everted edges'}},
         'Pelvis': {
             'Sulcus praeauricularis': {
                 'value': 3,
-                'female': '',
-                'male': ''},
+                'female': 'often present',
+                'male': 'absent'},
             'Incisura ischiadica major': {
                 'value': 3,
-                'female': '',
-                'male': ''},
+                'female': 'u-shaped, obtuse angle (>60°)',
+                'male': 'v-shaped, acute angle (~30°)'},
             'Angulus pubis': {
                 'value': 2,
-                'female': '',
-                'male': ''},
+                'female': 'broad, u-shaped',
+                'male': 'narrow, v-shaped'},
             'Arc composé': {
                 'value': 2,
-                'female': '',
-                'male': ''},
+                'female': 'double curve',
+                'male': 'single curve'},
             'Os coxae': {
                 'value': 2,
-                'female': '',
-                'male': ''},
+                'female': 'low, broad, with spreading alae ossis illii and low muscle relief',
+                'male': 'high, narrow, with strong muscle relief'},
             'Foramen obturatum': {
                 'value': 2,
-                'female': '',
-                'male': ''},
+                'female': 'small, wide, triangular',
+                'male': 'large, tall ovoid'},
             'Corpus ossis ischii': {
                 'value': 2,
-                'female': '',
-                'male': ''},
+                'female': 'narrow',
+                'male': 'broad'},
             'Crista iliaca': {
                 'value': 1,
-                'female': '',
-                'male': ''},
+                'female': 'flat s-shaped',
+                'male': 'pronounced s-shaped'},
             'Fossa iliaca': {
                 'value': 1,
-                'female': '',
-                'male': ''},
+                'female': 'small, broad',
+                'male': 'tall, narrow'},
             'Pelvis major': {
                 'value': 1,
-                'female': '',
-                'male': ''},
+                'female': 'broad',
+                'male': 'narrow'},
             'Auricular area': {
                 'value': 1,
-                'female': '',
-                'male': ''},
+                'female': 'narrow, on elevated plateau',
+                'male': 'wide, in plane of iliac surface'},
             'Sacrum': {
                 'value': 1,
-                'female': '',
-                'male': ''},
+                'female': 'sacral ala broader than body of S1, curvature ectends from S3 to S5',
+                'male': 'sacral ala narrower than S1, curvature ectends from S1 to S5'},
             'Fossa acetabuli': {
                 'value': 1,
-                'female': '',
-                'male': ''}},
+                'female': 'small, faces antero-laterally',
+                'male': 'large, faces more laterally'}},
         'Robusticity': {
             'Humerus': {
                 'value': 1,
-                'female': '',
-                'male': ''},
+                'female': 'grazil',
+                'male': 'pronounced'},
             'Femur': {
                 'value': 1,
-                'female': '',
-                'male': ''}}}
+                'female': 'grazil',
+                'male': 'pronounced'}}}
 
     @staticmethod
     def get_by_name(feature_name):
