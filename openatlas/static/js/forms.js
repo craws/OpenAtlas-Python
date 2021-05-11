@@ -116,9 +116,7 @@ $(document).ready(function () {
         },
     });
 
-    $("form")
-    //TODO: check with alex why this is on click for all forms
-    .on('click', '#generate-password', function () {
+    $("form").on('click', '#generate-password', function () {
         charset = '123456789abcdefghjklmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ';
         random_password = '';
         for (var i = 0; i < minimumPasswordLength; i++) {

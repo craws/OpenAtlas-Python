@@ -31,11 +31,11 @@ from openatlas.models.date import Date
 from openatlas.models.imports import Project
 from openatlas.models.link import Link
 from openatlas.models.model import CidocClass, CidocProperty
-from openatlas.util.table import Table
 
 if TYPE_CHECKING:  # pragma: no cover - Type checking is disabled in tests
     from openatlas.models.entity import Entity
     from openatlas.models.node import Node
+    from openatlas.util.table import Table
 
 
 @app.template_filter()
@@ -625,7 +625,7 @@ def breadcrumb(crumbs: List[Any]) -> str:
 
 
 @app.template_filter()
-def tab_header(id_: str, table: Optional[Table] = None, active: Optional[bool] = False) -> str:
+def tab_header(id_: str, table: Optional['Table'] = None, active: Optional[bool] = False) -> str:
     return Markup(render_template('util/tab_header.html', active=active, id=id_, table=table))
 
 

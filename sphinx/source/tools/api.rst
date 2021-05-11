@@ -10,8 +10,8 @@ and `GeoJSON <https://tools.ietf.org/html/rfc7946>`_, and therefore could be ren
 mapping applications. In addition, `Linked Places <https://github.com/LinkedPasts/linked-places>`_
 was used as standard.
 
-The API links in the user interface are only visible for user with activated **advanced layout** in
-their :doc:`profile` but any logged in user has access to the API.
+The API links at entity views are only visible for user who have activated
+**Show API links** in their :doc:`profile`.
 
 The base url of the current OpenAtlas API is api/0.2/
 

@@ -1,6 +1,6 @@
 from flask_babel import lazy_gettext as _
 from flask_wtf import FlaskForm
-from wtforms import BooleanField, IntegerField, SelectField, StringField, SubmitField, TextAreaField
+from wtforms import BooleanField, IntegerField, SelectField, StringField, SubmitField
 from wtforms.validators import Email, InputRequired
 
 from openatlas import app
@@ -52,15 +52,6 @@ class MailForm(FlaskForm):  # type: ignore
     mail_from_name = StringField(_('mail from name'))
     mail_recipients_feedback = StringField(_('mail recipients feedback'))
     save = SubmitField(_('save'))
-
-
-class NewsLetterForm(FlaskForm):  # type: ignore
-    subject = StringField(
-        '',
-        [InputRequired()],
-        render_kw={'placeholder': _('subject'), 'autofocus': True})
-    body = TextAreaField('', [InputRequired()], render_kw={'placeholder': _('content')})
-    save = SubmitField(_('send'))
 
 
 class LogForm(FlaskForm):  # type: ignore

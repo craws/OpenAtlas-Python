@@ -1,38 +1,21 @@
-{% extends "layout.html" %}
-{% block content %}
-    <div class="row">
-        <div class="col-6">
-            <ul class="nav nav-tabs" role="tablist">
-                {{ 'info'|tab_header(active=True) }}
-                {% if table.rows %}
-                    {{ 'entities'|tab_header(table=table) }}
-                {% endif %}
-            </ul>
-            <div class="tab-content">
-                <div class="tab-pane fade show active" role="tabpanel" id="tab-info">
-                    {% if 'manager'|is_authorized %}
-                        <div class="toolbar">
-                            {{ 'admin/import'|manual }}
-                            {{ _('edit')|button(url_for('import_project_update', id_=project.id)) }}
-                            {{ _('delete')|button(url_for('import_project_delete', id_=project.id), onclick="return confirm('" + _('delete %(name)s?', name=project.name)|replace("'", "")|uc_first + "')") }}
-                        </div>
-                        <p>{{ _('new import')|uc_first }}:</p>
-                        <div class="toolbar">
-                            {{ _('source')|button(url_for('import_data', project_id=project.id, class_='source')) }}
-                            {% for class_ in g.view_class_mapping.event + g.view_class_mapping.actor %}
-                                {{ class_|button(url_for('import_data', project_id=project.id, class_=class_)) }}
-                            {% endfor %}
-                            {{ _('place')|button(url_for('import_data', project_id=project.id, class_='place')) }}
-                        </div>
-                    {% endif %}
-                    {{ project|description }}
-                </div>
-                {% if table.rows %}
-                    <div class="tab-pane fade" role="tabpanel" id="tab-entities">
-                        {{ table.display() }}
-                    </div>
-                {% endif %}
-            </div>
+{% extends "tabs.html" %}
+{% block tab_info %}
+    {% if 'manager'|is_authorized %}
+        <div class="toolbar">
+            {{ 'admin/import'|manual }}
+            {{ _('edit')|button(url_for('import_project_update', id_=project.id)) }}
+            {{ _('delete')|button(
+                url_for('import_project_delete', id_=project.id),
+                onclick="return confirm('" + _('delete %(name)s?', name=project.name)|replace("'", "")|uc_first + "')") }}
         </div>
-    </div>
+        <p>{{ _('new import')|uc_first }}:</p>
+        <div class="toolbar">
+            {{ _('source')|button(url_for('import_data', project_id=project.id, class_='source')) }}
+            {% for class_ in g.view_class_mapping.event + g.view_class_mapping.actor %}
+                {{ class_|button(url_for('import_data', project_id=project.id, class_=class_)) }}
+            {% endfor %}
+            {{ _('place')|button(url_for('import_data', project_id=project.id, class_='place')) }}
+        </div>
+    {% endif %}
+    {{ project|description }}
 {% endblock %}

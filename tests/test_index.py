@@ -29,11 +29,10 @@ class IndexTests(TestBaseCase):
             assert b'first' in rv.data
 
             # Translations
-            if os.name == 'posix':
-                rv = self.app.get(url_for('set_locale', language='de'), follow_redirects=True)
-                assert b'Quelle' in rv.data
-                rv = self.app.get(url_for('set_locale', language='en'), follow_redirects=True)
-                assert b'Source' in rv.data
+            rv = self.app.get(url_for('set_locale', language='de'), follow_redirects=True)
+            assert b'Quelle' in rv.data
+            rv = self.app.get(url_for('set_locale', language='en'), follow_redirects=True)
+            assert b'Source' in rv.data
 
             rv = self.app.get(url_for('entity_view', id_=666), follow_redirects=True)
             assert b'teapot' in rv.data  # Id not found error
