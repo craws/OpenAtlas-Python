@@ -1,7 +1,7 @@
 from __future__ import annotations  # Needed for Python 4.0 type annotations
 
 import ast
-from typing import Any, Dict, Iterable, List, Optional, Set, TYPE_CHECKING, Type, Union
+from typing import Any, Dict, Iterable, List, Optional, Set, TYPE_CHECKING, Union
 
 from flask import g, request
 from flask_wtf import FlaskForm
@@ -292,7 +292,7 @@ class Entity:
     def get_by_ids(
             ids: Iterable[int],
             nodes: bool = False,
-            aliases: bool = False) -> List[Entity, Type, ReferenceSystem]:
+            aliases: bool = False) -> List[Entity]:
         entities = []
         for row in Db.get_by_ids(ids, nodes, aliases):
             if row['id'] in g.nodes:
@@ -308,7 +308,7 @@ class Entity:
         entities = []
         for row in Db.get_by_project_id(project_id):
             entity = Entity(row)
-            entity.origin_id = ['origin_id']
+            entity.origin_id = row['origin_id']
             entities.append(entity)
         return entities
 

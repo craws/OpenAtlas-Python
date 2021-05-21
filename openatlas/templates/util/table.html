@@ -1,0 +1,17 @@
+<table id="{{ name }}_table" class="table table-striped hover" style="width:100%"></table>
+<style type="text/css">
+    {% if not table.header %}
+        #{{ name }}_table_wrapper .row:first-of-type {display:none;}
+    {% endif %}
+    {% if table.rows|length <= current_user.settings.table_rows %}
+        #{{ name }}_table_wrapper .row:last-of-type {display:none;}
+     {% endif %}
+</style>
+<script>
+    $(document).ready(function() {
+        $('#{{ name }}_table').DataTable({{ data|safe }});
+        overflow();
+        $('#{{ name }}_table').on('page.dt', () => overflow());
+        $('#{{ name }}_table').on('search.dt', () => overflow());
+    });
+</script>

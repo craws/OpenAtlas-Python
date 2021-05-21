@@ -3,15 +3,17 @@ File
 
 .. toctree::
 
-A file overview can be seen navigating to menu item **Admin** -> tab **Files** -> **List** button.
+A file overview can be seen navigating to menu item **Admin** at the right top of the site.
+The first tab will be **Files** with a **List** button to show all files.
 
 .. include:: /entity/navigation.rst
 
 If entities are linked to displayable files the first one is shown in the info tab but can be
 changed to another one in the files tab of the entity.
 
-Files can be uploaded by editors if they doesn't exceed the upload size limit and have an allowed
-extension. Both criteria are displayed at the upload form.
+Files can be uploaded by editors if they don't exceed the upload size limit and have an allowed
+extension. Both criteria are displayed at the upload form. It is possible to upload multiple files
+in one go.
 
 Form fields
 -----------

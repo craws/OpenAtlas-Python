@@ -1,7 +1,7 @@
 from __future__ import annotations  # Needed for Python 4.0 type annotations
 
 import ast
-from typing import Any
+from typing import Any, Dict, List
 
 from flask import g, render_template
 from flask_login import current_user
@@ -106,7 +106,7 @@ class TableField(HiddenField):  # type: ignore
 class TreeMultiSelect(HiddenInput):  # type: ignore
 
     def __call__(self, field: TreeField, **kwargs: Any) -> TreeMultiSelect:
-        data = []
+        data: List[int] = []
         if field.data:
             data = ast.literal_eval(field.data) if isinstance(field.data, str) else field.data
         html = render_template(

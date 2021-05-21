@@ -150,8 +150,8 @@ class LinkedPlacesEntity:
             for key, value in entity.aliases.items():
                 features['names'].append({"alias": value})
 
-        links = []
-        links_inverse = []
+        links: List[Link] = []
+        links_inverse: List[Link] = []
         if any(i in ['relations', 'types', 'depictions', 'links'] for i in parser['show']):
             links = LinkedPlacesEntity.get_all_links(entity)
             links_inverse = LinkedPlacesEntity.get_all_links_inverse(entity)
@@ -163,12 +163,12 @@ class LinkedPlacesEntity:
             LinkedPlacesEntity.get_node(entity, links) if 'types' in parser['show'] else None
         features['depictions'] = \
             LinkedPlacesEntity.get_file(links_inverse) if 'depictions' in parser['show'] else None
-        features['when'] = \
-            {'timespans': [LinkedPlacesEntity.get_time(entity)]} if 'when' in parser[
+        features['when'] = {
+            'timespans': [LinkedPlacesEntity.get_time(entity)]} if 'when' in parser[
                 'show'] else None
-        features['links'] = LinkedPlacesEntity.get_reference_systems(links_inverse) if 'links' in \
-                                                                                       parser[
-                                                                                           'show'] else None
+        features['links'] = LinkedPlacesEntity.get_reference_systems(links_inverse) \
+            if 'links' in parser['show'] else None
+
         if 'geometry' in parser['show']:
             if entity.class_.view == 'place' or entity.class_.name in ['find', 'artifact']:
                 features['geometry'] = LinkedPlacesEntity.get_geoms_by_entity(

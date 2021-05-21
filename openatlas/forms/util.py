@@ -25,8 +25,8 @@ def get_form_settings(form: Any, profile: bool = False) -> Dict[str, str]:
         return {
             _('name'): current_user.real_name,
             _('email'): current_user.email,
-            _('show email'): _('on') if current_user.settings['show_email'] else _('off'),
-            _('newsletter'): _('on') if current_user.settings['newsletter'] else _('off')}
+            _('show email'): str(_('on') if current_user.settings['show_email'] else _('off')),
+            _('newsletter'): str(_('on') if current_user.settings['newsletter'] else _('off'))}
     settings = {}
     for field in form:
         if field.type in ['CSRFTokenField', 'HiddenField', 'SubmitField']:

@@ -274,19 +274,16 @@ if (allSelected.length > 0) map.fitBounds(L.featureGroup(allSelected).getBounds(
 else if (gisPointAll.length > 0) map.fitBounds(pointLayer.getBounds(), {maxZoom: mapDefaultZoom});
 else map.setView([30, 0], 2);
 
-//todo: on add overlay place markers - check if markers count is too high. if yes: alert user that this may decrease performance
 groupedOverlays = {
     "Places": markerControls,
     "General": controls,
     "Subunits": UnitControls
 };
 
-
 var GroupOptions = {
     exclusiveGroups: ["Places"],
     groupCheckboxes: true
 };
-
 
 L.control.groupedLayers(baseMaps, groupedOverlays, GroupOptions).addTo(map);
 //L.control.layers(baseMaps, controls).addTo(map);

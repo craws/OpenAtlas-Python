@@ -1,10 +1,13 @@
 class Changelog:
 
     versions = {
-        '6.2.0': ['TBA', {
+        '6.3.0': ['TBA', {
+            'feature': {}}],
+        '6.2.0': ['2021-05-08', {
             'feature': {
                 '940': 'Multiple file upload',
                 '1284': 'Show image when editing a place or artifact',
+                '1428': 'Configuration of frontend site name',
                 '1476': 'Show/hide button for multiple reference systems',
                 '1496': 'API: Endpoints for entities of type'}}],
         '6.1.0': ['2021-04-05', {

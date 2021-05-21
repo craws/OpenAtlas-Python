@@ -367,7 +367,7 @@ def insert_entity(
     return entity
 
 
-def update_links(entity: Entity, form: FlaskForm, action: str, origin: Optional[Entity]) -> None:
+def update_links(entity: Entity, form: FlaskForm, action: str, origin: Union[Entity, None]) -> None:
     if entity.class_.view in ['actor', 'event', 'place', 'artifact', 'type']:
         ReferenceSystem.update_links(form, entity)
     if entity.class_.view == 'actor':
